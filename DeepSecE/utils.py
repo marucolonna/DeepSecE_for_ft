@@ -27,7 +27,7 @@ def metrics(y, pred, score):
 
 
 def label2index(label):
-    label_dict = {'Non-': 0, 'T1SE': 1, 'T2SE': 2, 'T3SE': 3, 'T4SE': 4, 'T6SE': 5}
+    label_dict = {'Inc_': 0, 'nega': 1}
     index = label_dict[label]
     return index
 
