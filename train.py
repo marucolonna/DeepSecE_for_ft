@@ -37,7 +37,7 @@ def main(args):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if args.model == "effectortransformer":
         model = EffectorTransformer(1280, 33, hid_dim=args.hid_dim, num_layers=args.num_layers,
-                            heads=args.num_heads, dropout_rate=args.dropout_rate, num_classes=6)
+                            heads=args.num_heads, dropout_rate=args.dropout_rate, num_classes=2)
     elif args.model == "esm1bmodel":
         model = ESM1bModel(1280, 33, unfreeze_last=True, hid_dim=args.hid_dim, dropout_rate=args.dropout_rate, num_classes=6)
     else:
@@ -45,10 +45,11 @@ def main(args):
     
     print(f'Loading model from {args.model_initial}') #incfold - getting weights from pretrained DeepSecE
     if args.no_cuda:
-        model.load_state_dict(torch.load(args.model_initial, map_location="cpu"))
+        model_weights = torch.load(args.model_initial, map_location="cpu")
     else:
-        model.load_state_dict(torch.load(args.model_initial))
-
+        model_weights = torch.load(args.model_initial)
+    model_weights['clf.weights'] = nn.init.kaiming_uniform_(torch.zeros(2,256))
+    model.load_state_dict(model_weights)
     model.to(device)
 
     # Configure datasets and dataloaders
