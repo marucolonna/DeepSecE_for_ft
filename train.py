@@ -208,6 +208,8 @@ if __name__ == '__main__':
                         help="fold number (default: 0)")
     parser.add_argument('--model_initial', default=None, type=str,
                         help="initial pretrained DeepSecE model(default: None)")
+    parser.add_argument('--no_cuda', action='store_true',
+                        help='add when CUDA is not available.')
 
     args = parser.parse_args()
 
