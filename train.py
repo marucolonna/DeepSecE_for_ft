@@ -43,7 +43,7 @@ def main(args):
     else:
         raise ValueError('Invalid model type!')
     
-    print(f'Loading model from {args.model_initial') #incfold - getting weights from pretrained DeepSecE
+    print(f'Loading model from {args.model_initial}') #incfold - getting weights from pretrained DeepSecE
     if args.no_cuda:
         model.load_state_dict(torch.load(args.model_initial, map_location="cpu"))
     else:
