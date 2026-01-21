@@ -49,7 +49,9 @@ def main(args):
     else:
         model_weights = torch.load(args.model_initial)
     model_weights['clf.weight'] = nn.init.kaiming_uniform_(torch.zeros(2,256))
-    model_weights['clf.bias'] = nn.init.kaiming_uniform_(torch.zeros(2))
+    fan_in, _ = nn.init._calculate_fan_in_and_fan_out(model_weights['clf.weight'])
+    bound = 1 / fan_in ** 0.5 if fan_in > 0 else 0
+    model_weights['clf.bias'] = nn.init.uniform_(torch.zeros(2), -bound, bound)
     model.load_state_dict(model_weights)
     model.to(device)
 
