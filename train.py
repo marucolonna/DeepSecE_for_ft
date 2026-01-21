@@ -42,6 +42,13 @@ def main(args):
         model = ESM1bModel(1280, 33, unfreeze_last=True, hid_dim=args.hid_dim, dropout_rate=args.dropout_rate, num_classes=6)
     else:
         raise ValueError('Invalid model type!')
+    
+    print(f'Loading model from {args.model_initial') #incfold - getting weights from pretrained DeepSecE
+    if args.no_cuda:
+        model.load_state_dict(torch.load(args.model_initial, map_location="cpu"))
+    else:
+        model.load_state_dict(torch.load(args.model_initial))
+
     model.to(device)
 
     # Configure datasets and dataloaders
@@ -199,6 +206,8 @@ if __name__ == '__main__':
                         help="num. of CV folds. (default: 5)")
     parser.add_argument('--fold_num', default=0, type=int,
                         help="fold number (default: 0)")
+    parser.add_argument('--model_initial', default=None, type=str,
+                        help="initial pretrained DeepSecE model(default: None)")
 
     args = parser.parse_args()
 

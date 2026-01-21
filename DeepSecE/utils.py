@@ -27,7 +27,7 @@ def metrics(y, pred, score):
 
 
 def label2index(label):
-    label_dict = {'Inc_': 0, 'nega': 1}
+    label_dict = {'Inc_': 0, 'nega': 1} #incfold
     index = label_dict[label]
     return index
 
