@@ -29,7 +29,7 @@ def set_seed(seed):
 
 
 def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=False):
-    predicted_labels = ['-', 'I', 'II', 'III', 'IV', 'VI']
+    predicted_labels = ['Inc-protein', 'Negative'] #incfold
     print(f'Loading FASTA Dataset from {fasta}')
 
     dataset = FastaBatchedDataset.from_file(fasta)
@@ -77,32 +77,28 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
     preds = np.concatenate(preds)
     print(f"{probs.shape=}")  # all sequences !
 
-    probs_non_effector = probs[:, 0]
-    probs_t1se = probs[:, 1]
-    probs_t2se = probs[:, 2]
-    probs_t3se = probs[:, 3]
-    probs_t4se = probs[:, 4]
-    probs_t6se = probs[:, 5]
-    systems = list(map(lambda x: predicted_labels[x], preds))
+    probs_inc= probs[:, 0] #incfold
+    probs_nega= probs[:, 1] #incfold
+
+    is_inc = list(map(lambda x: predicted_labels[x], preds)) #incfold
     scores = [prob[idx] for prob, idx in zip(probs, preds)]
 
-    result = pd.DataFrame({'name': names, 'system': systems, 'score': scores, 'NonSecreted.prob': probs_non_effector, 'T1SE.prob': probs_t1se,
-                          'T2SE.prob': probs_t2se, 'T3SE.prob': probs_t3se, 'T4SE.prob': probs_t4se, 'T6SE.prob': probs_t6se, 'length': lengths})
+    result = pd.DataFrame({'name': names, 'is_inc': is_inc, 'score': scores, 'inc.prob': probs_inc, 'nega.prob': probs_nega, 'length': lengths}) #incfold
     result = result.round(4)
     print(f"{result.shape=}")  # all sequences !
 
     print(f"Writing prediction result in {os.path.join(outdir, 'predictions.csv')}")
     result.to_csv(os.path.join(outdir, 'predictions.csv'), index=False)
 
-    effector = result[result['system'].isin(pos_labels)]
+    effector = result[result['is_inc'].isin(pos_labels)] #incfold
     print(f"{effector.shape=}")
     effector.to_csv(os.path.join(outdir, 'results.csv'), index=False)
 
-    print(f"Writing putative secreted proteins in {os.path.join(outdir, 'secreted-proteins.fasta')}")
-    SeqIO.write(seq_records, os.path.join(outdir, 'secreted-proteins.fasta'), 'fasta')
+    print(f"Writing putative inc proteins in {os.path.join(outdir, 'inc_proteins.fasta')}") #incfold
+    SeqIO.write(seq_records, os.path.join(outdir, 'inc_proteins.fasta'), 'fasta') #incfold
 
     if save_attn:
-        print(f"Saving secreted protein attention in {os.path.join(outdir, 'attn.npz')}")
+        print(f"Saving inc protein attention in {os.path.join(outdir, 'attn.npz')}") #incfold
         np.savez(os.path.join(outdir, 'attn.npz'), **attn_dict)
 
 
@@ -122,7 +118,7 @@ def main(args):
     start_time = time.time()
 
     model = EffectorTransformer(1280, 33, hid_dim=256, num_layers=1, heads=4,
-                            dropout_rate=0.4, num_classes=6, return_attn=args.save_attn)
+                            dropout_rate=0.4, num_classes=2, return_attn=args.save_attn)
     model.to(device)
     
     print(f'Loading model from {args.model_location}')
@@ -132,7 +128,7 @@ def main(args):
         model.load_state_dict(torch.load(args.model_location))
 
     predict(model, args.fasta_path, args.batch_size, device,
-            args.out_dir, args.secretion_systems, args.save_attn)
+            args.out_dir, args.is_inc_labels, args.save_attn)
 
     end_time = time.time()
     secs = end_time - start_time
@@ -151,12 +147,12 @@ if __name__ == '__main__':
                         help='input ordered protein sequences.')
     parser.add_argument('--model_location', required=True, type=str,
                         help='path to the model weights.')
-    parser.add_argument('--secretion_systems', nargs='+', default=['I', 'II', 'III', 'IV', 'VI'],
-                        help="types of secreted proteins requiring prediction. (default: I II III IV VI)")
+    parser.add_argument('--is_inc_labels', nargs='+', default=['Inc_', 'nega'],
+                        help='types of secreted proteins requiring prediction. (default: Inc_, nega)') #incfold
     parser.add_argument('--out_dir', default='./', type=str,
                         help='output directory of prediction results.')
     parser.add_argument('--save_attn', action='store_true',
-                        help='save the sequence attention of secreted proteins.')
+                        help='save the sequence attention of inc proteins.') #incfold
     parser.add_argument('--no_cuda', action='store_true',
                         help='add when CUDA is not available.')
 
