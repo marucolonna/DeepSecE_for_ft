@@ -122,6 +122,6 @@ def test(model, iterator, criterion, device, return_array=False):
     metrics_dict = metrics(truth, preds, probs)
 
     if return_array:
-        return avg_loss, metrics_dict, truth, preds
+        return avg_loss, metrics_dict, truth, preds, probs #incfold - added probs
     else:
         return avg_loss, metrics_dict

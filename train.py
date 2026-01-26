@@ -132,13 +132,13 @@ def main(args):
 
     # Testing and evaluation
     model.load_state_dict(torch.load(os.path.join(log_dir, 'checkpoint.pt')))
-    valid_best_loss, valid_best_metrics, valid_truth, valid_pred = test(model, valid_loader, criterion, device, True)
+    valid_best_loss, valid_best_metrics, valid_truth, valid_pred, valid_probs = test(model, valid_loader, criterion, device, True) #incfold - added valid_probs
     _, test_final_metrics, test_truth, test_pred = test(model, test_loader, criterion, device, True)
 
     logging.info(f'Best Valid Loss: {valid_best_loss:.3f} | Acc: {valid_best_metrics["Accuracy"]*100:.2f}% |'
-                 f' F1: {valid_best_metrics["F1-score"]:.3f} | mAP: {valid_best_metrics["AUPRC"]:.3f}')
-    logging.info(f'Final Test Acc: {test_final_metrics["Accuracy"]*100:.2f}% |'
-                 f' F1: {test_final_metrics["F1-score"]:.3f} | mAP: {test_final_metrics["AUPRC"]:.3f}')
+                 f' F1: {valid_best_metrics["F1-score"]:.3f} | mAP: {valid_best_metrics["AUPRC"]:.3f} |' f' probs: {valid_probs}') #incfold - added valid_probs to output
+    #logging.info(f'Final Test Acc: {test_final_metrics["Accuracy"]*100:.2f}% |' #incfold
+    #             f' F1: {test_final_metrics["F1-score"]:.3f} | mAP: {test_final_metrics["AUPRC"]:.3f}')
 
     for key, value in valid_best_metrics.items():
         writer.add_scalar('Valid/Best ' + key, value)
@@ -146,12 +146,12 @@ def main(args):
         writer.add_scalar('Test/Final ' + key, value)
 
     valid_cm = confusion_matrix(valid_truth, valid_pred)
-    test_cm = confusion_matrix(test_truth, test_pred)
+    #test_cm = confusion_matrix(test_truth, test_pred) #incfold
 
     labels = ['Non-inc', 'inc'] #incfold
 
     writer.add_figure('Valid/conf_matrix', viz_conf_matrix(valid_cm, labels))
-    writer.add_figure('Test/conf_matrix', viz_conf_matrix(test_cm, labels))
+    #writer.add_figure('Test/conf_matrix', viz_conf_matrix(test_cm, labels)) #incfold
     writer.close()
 
 
