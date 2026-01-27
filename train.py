@@ -68,8 +68,8 @@ def main(args):
                               collate_fn=alphabet.get_batch_converter(), num_workers=args.num_workers, shuffle=True)
     valid_loader = DataLoader(valid_dataset, batch_size=args.batch_size,
                               collate_fn=alphabet.get_batch_converter(), num_workers=args.num_workers)
-    test_loader = DataLoader(test_dataset, batch_size=args.batch_size,
-                             collate_fn=alphabet.get_batch_converter(), num_workers=args.num_workers)
+    #test_loader = DataLoader(test_dataset, batch_size=args.batch_size,
+    #                         collate_fn=alphabet.get_batch_converter(), num_workers=args.num_workers)
     
     # incfold - Save train - valid datasets for each loop
     train_fasta_path = os.path.join(log_dir, f'Train_Fold_{args.fold_num}.fasta')
