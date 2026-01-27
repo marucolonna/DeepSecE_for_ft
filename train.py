@@ -18,6 +18,7 @@ from DeepSecE.model import EffectorTransformer, ESM1bModel
 from DeepSecE.dataset import TXSESequenceDataSet
 from DeepSecE.utils import  label2index, viz_conf_matrix
 from DeepSecE.trainer import train, test, set_seed, EarlyStopping
+from DeepsecE.predict import predict
 
 
 def main(args):
@@ -69,6 +70,20 @@ def main(args):
                               collate_fn=alphabet.get_batch_converter(), num_workers=args.num_workers)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size,
                              collate_fn=alphabet.get_batch_converter(), num_workers=args.num_workers)
+    
+    # incfold - Save train - valid datasets for each loop
+    train_fasta_path = os.path.join(log_dir, f'Train_Fold_{args.fold_num}.fasta')
+    valid_fasta_path = os.path.join(log_dir, f'Valid_Fold_{args.fold_num}.fasta')
+    
+    with open(train_fasta_path, 'w') as f:
+        for idx in range(len(train_dataset)):
+            label, seq_str = train_dataset[idx]
+            f.write(f">{label}\n{seq_str}\n")
+
+    with open(valid_fasta_path, 'w') as f:
+        for idx in range(len(valid_dataset)):
+            label, seq_str = valid_dataset[idx]
+            f.write(f">{label}\n{seq_str}\n")
 
     # Configure loss, optimizer, scheduler, early stopping
     criterion = nn.CrossEntropyLoss()
@@ -132,12 +147,12 @@ def main(args):
 
     # Testing and evaluation
     model.load_state_dict(torch.load(os.path.join(log_dir, 'checkpoint.pt')))
-    valid_best_loss, valid_best_metrics, valid_truth, valid_pred, valid_probs = test(model, valid_loader, criterion, device, True) #incfold - added valid_probs
+    valid_best_loss, valid_best_metrics, valid_truth, valid_pred = test(model, valid_loader, criterion, device, True)
     #_, test_final_metrics, test_truth, test_pred = test(model, test_loader, criterion, device, True) #incfold - removing test metrics logging
 
     logging.info(f'Best Valid Loss: {valid_best_loss:.3f} | Acc: {valid_best_metrics["Accuracy"]*100:.2f}% |'
-                 f' F1: {valid_best_metrics["F1-score"]:.3f} | mAP: {valid_best_metrics["AUPRC"]:.3f} |' f' probs: {valid_probs}') #incfold - added valid_probs to output
-    #logging.info(f'Final Test Acc: {test_final_metrics["Accuracy"]*100:.2f}% |' #incfold -  removing test metrics logging
+                 f' F1: {valid_best_metrics["F1-score"]:.3f} | mAP: {valid_best_metrics["AUPRC"]:.3f} |' f' probs: {valid_probs_with_labels}') #incfold - added valid_probs to output
+    #logging.info(f'Final Test Acc: {test_final_metrics["Accuracy"]*100:.2f}qq% |' #incfold -  removing test metrics logging
     #             f' F1: {test_final_metrics["F1-score"]:.3f} | mAP: {test_final_metrics["AUPRC"]:.3f}')
 
     for key, value in valid_best_metrics.items():
