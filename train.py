@@ -151,7 +151,7 @@ def main(args):
     #_, test_final_metrics, test_truth, test_pred = test(model, test_loader, criterion, device, True) #incfold - removing test metrics logging
 
     logging.info(f'Best Valid Loss: {valid_best_loss:.3f} | Acc: {valid_best_metrics["Accuracy"]*100:.2f}% |'
-                 f' F1: {valid_best_metrics["F1-score"]:.3f} | mAP: {valid_best_metrics["AUPRC"]:.3f} |' f' probs: {valid_probs_with_labels}') #incfold - added valid_probs to output
+                 f' F1: {valid_best_metrics["F1-score"]:.3f} | mAP: {valid_best_metrics["AUPRC"]:.3f}')
     #logging.info(f'Final Test Acc: {test_final_metrics["Accuracy"]*100:.2f}qq% |' #incfold -  removing test metrics logging
     #             f' F1: {test_final_metrics["F1-score"]:.3f} | mAP: {test_final_metrics["AUPRC"]:.3f}')
 
