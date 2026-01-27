@@ -61,8 +61,8 @@ def main(args):
                                 transform=label2index, mode='train', kfold=args.kfold, fold_num=args.fold_num, seed=args.seed)
     valid_dataset = TXSESequenceDataSet(fasta_path=os.path.join(args.data_dir, 'Train-2918.fasta'),
                                 transform=label2index, mode='valid', kfold=args.kfold, fold_num=args.fold_num, seed=args.seed)
-    test_dataset = TXSESequenceDataSet(fasta_path=os.path.join(args.data_dir, 'Test-260.fasta'),
-                               transform=label2index, mode='test')
+    #test_dataset = TXSESequenceDataSet(fasta_path=os.path.join(args.data_dir, 'Test-260.fasta'),
+    #                           transform=label2index, mode='test')
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size,
                               collate_fn=alphabet.get_batch_converter(), num_workers=args.num_workers, shuffle=True)
     valid_loader = DataLoader(valid_dataset, batch_size=args.batch_size,
