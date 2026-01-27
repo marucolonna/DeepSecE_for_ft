@@ -18,7 +18,6 @@ from DeepSecE.model import EffectorTransformer, ESM1bModel
 from DeepSecE.dataset import TXSESequenceDataSet
 from DeepSecE.utils import  label2index, viz_conf_matrix
 from DeepSecE.trainer import train, test, set_seed, EarlyStopping
-from DeepsecE.predict import predict
 
 
 def main(args):
