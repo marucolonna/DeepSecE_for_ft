@@ -142,7 +142,8 @@ def main(args):
         #epochs_checkpoint = [40, 60, 80, args.max_epochs]
 
         #if epoch + 1 in epochs_checkpoint:
-        torch.save(model.state_dict(), os.path.join(log_dir, f'checkpoint.pt')) #incfold - saving checkpoint
+    
+    torch.save(model.state_dict(), os.path.join(log_dir, 'checkpoint.pt')) #incfold - saving checkpoint
 
         #early_stopping(valid_f1, model)
         #if early_stopping.early_stop:
