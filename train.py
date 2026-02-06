@@ -55,7 +55,7 @@ def main(args):
     
     model_weights['conv.weight'] = nn.init.kaiming_uniform_(torch.zeros(256, 1472, 1)) #incfold - update conv weight shape for receiving ESM+tmbed output
 
-    tmbed_weights_file = Path('/opt/TMbed_ft/tmbed/models/cnn/cv_0.pt') #incfold - tmbed weights
+    tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
     tmbed_weights = torch.load(tmbed_weights_file)['model'] #incfold - tmbed weights
     model_weights.update(tmbed_weights) #incfold - merging tmbed weights with DeepSecE weights
     
