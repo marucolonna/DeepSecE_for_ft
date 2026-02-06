@@ -66,14 +66,11 @@ def main(args):
     model_weights['tmbed.model.dwc1.conv.weight'] = nn.init.xavier_uniform_(torch.ones(64, 1, 9, 1))
     model_weights['tmbed.model.dwc2.norm.weight'] = nn.Parameter(torch.ones(1, channels, 1, 1))
     model_weights['tmbed.model.dwc2.conv.weight'] = nn.init.xavier_uniform_(torch.ones(64, 1, 21, 1))
-    model_weights['tmbed.model.output.weight'] = nn.init.xavier_uniform_(torch.ones(64, 64))
+    model_weights['tmbed.model.output.weight'] = nn.init.xavier_uniform_(torch.ones(5, 192, 1, 1))
 
     model_weights['tmbed.model.input.norm.bias'] = nn.Parameter(torch.zeros(1, channels, 1, 1))
-    model_weights['tmbed.model.input.conv.bias'] = nn.init.zeros_(torch.zeros(64))
     model_weights['tmbed.model.dwc1.norm.bias'] = nn.Parameter(torch.zeros(1, channels, 1, 1))
-    model_weights['tmbed.model.dwc1.conv.bias'] = nn.init.zeros_(torch.zeros(64))
     model_weights['tmbed.model.dwc2.norm.bias'] = nn.Parameter(torch.zeros(1, channels, 1, 1))
-    model_weights['tmbed.model.dwc2.conv.bias'] = nn.init.zeros_(torch.zeros(64))
     model_weights['tmbed.model.output.bias'] = nn.init.zeros_(torch.zeros(5))
 
     model_weights['tmbed.filter_kernel'] = gaussian_kernel(kernel_size=7, std=1.0)
@@ -81,6 +78,10 @@ def main(args):
     model_weights['tmbed.model.input.norm.eps'] = torch.tensor(float(eps))
     model_weights["tmbed.model.dwc1.norm.eps"] = torch.tensor(float(eps))
     model_weights["tmbed.model.dwc2.norm.eps"] = torch.tensor(float(eps))
+
+    model_weights['tmbed.model.input.norm.channels'] = channels
+    model_weights['tmbed.model.dwc1.norm.channels'] = channels
+    model_weights['tmbed.model.dwc2.norm.channels'] = channels
     #incfold - done
 
     model.load_state_dict(model_weights)
