@@ -60,7 +60,7 @@ def main(args):
     channels=64
     eps=1e-6
     model_weights['tmbed.model.input.norm.weight'] = nn.Parameter(torch.ones(1, channels, 1, 1))
-    model_weights['tmbed.model.input.conv.weight'] = nn.init.xavier_uniform_(torch.ones(64, 1024, 1, 1))
+    model_weights['tmbed.model.input.conv.weight'] = nn.init.xavier_uniform_(torch.ones(64, 1280, 1, 1))
     model_weights['tmbed.model.dwc1.norm.weight'] = nn.Parameter(torch.ones(1, channels, 1, 1))
     model_weights['tmbed.model.dwc1.conv.weight'] = nn.init.xavier_uniform_(torch.ones(64, 1, 9, 1))
     model_weights['tmbed.model.dwc2.norm.weight'] = nn.Parameter(torch.ones(1, channels, 1, 1))
