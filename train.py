@@ -19,6 +19,8 @@ from DeepSecE.dataset import TXSESequenceDataSet
 from DeepSecE.utils import  label2index, viz_conf_matrix
 from DeepSecE.trainer import train, test, set_seed, EarlyStopping
 
+from tmbed.utils import gaussian_kernel
+
 def main(args):
 
     set_seed(args.seed)
@@ -51,6 +53,36 @@ def main(args):
     fan_in, _ = nn.init._calculate_fan_in_and_fan_out(model_weights['clf.weight'])
     bound = 1 / fan_in ** 0.5 if fan_in > 0 else 0
     model_weights['clf.bias'] = nn.init.uniform_(torch.zeros(2), -bound, bound)
+    
+    model_weights['conv.weight'] = nn.init.kaiming_uniform_(torch.zeros(256, 1472, 1)) #incfold - update conv weight shape for receiving ESM+tmbed output
+    model_weights['conv.bias'] = nn.init.zeros_(torch.zeros(256)) #incfold - update conv bias shape for receiving ESM+tmbed output 
+    
+    #incfold - loading tmbed weights and biases
+    channels=64
+    eps=1e-6
+    model_weights['tmbed.model.input.norm.weight'] = nn.Parameter(torch.ones(1, channels, 1, 1))
+    model_weights['tmbed.model.input.conv.weight'] = nn.init.xavier_uniform_(torch.ones(64, 1024, 1, 1))
+    model_weights['tmbed.model.dwc1.norm.weight'] = nn.Parameter(torch.ones(1, channels, 1, 1))
+    model_weights['tmbed.model.dwc1.conv.weight'] = nn.init.xavier_uniform_(torch.ones(64, 1, 9, 1))
+    model_weights['tmbed.model.dwc2.norm.weight'] = nn.Parameter(torch.ones(1, channels, 1, 1))
+    model_weights['tmbed.model.dwc2.conv.weight'] = nn.init.xavier_uniform_(torch.ones(64, 1, 21, 1))
+    model_weights['tmbed.model.output.weight'] = nn.init.xavier_uniform_(torch.ones(64, 64))
+
+    model_weights['tmbed.model.input.norm.bias'] = nn.Parameter(torch.zeros(1, channels, 1, 1))
+    model_weights['tmbed.model.input.conv.bias'] = nn.init.zeros_(torch.zeros(64))
+    model_weights['tmbed.model.dwc1.norm.bias'] = nn.Parameter(torch.zeros(1, channels, 1, 1))
+    model_weights['tmbed.model.dwc1.conv.bias'] = nn.init.zeros_(torch.zeros(64))
+    model_weights['tmbed.model.dwc2.norm.bias'] = nn.Parameter(torch.zeros(1, channels, 1, 1))
+    model_weights['tmbed.model.dwc2.conv.bias'] = nn.init.zeros_(torch.zeros(64))
+    model_weights['tmbed.model.output.bias'] = nn.init.zeros_(torch.zeros(5))
+
+    model_weights['tmbed.filter_kernel'] = gaussian_kernel(kernel_size=7, std=1.0)
+
+    model_weights['tmbed.model.input.norm.eps'] = torch.tensor(float(eps))
+    model_weights["tmbed.model.dwc1.norm.eps"] = torch.tensor(float(eps))
+    model_weights["tmbed.model.dwc2.norm.eps"] = torch.tensor(float(eps))
+    #incfold - done
+
     model.load_state_dict(model_weights)
     model.to(device)
 
