@@ -55,7 +55,6 @@ def main(args):
     model_weights['clf.bias'] = nn.init.uniform_(torch.zeros(2), -bound, bound)
     
     model_weights['conv.weight'] = nn.init.kaiming_uniform_(torch.zeros(256, 1472, 1)) #incfold - update conv weight shape for receiving ESM+tmbed output
-    model_weights['conv.bias'] = nn.init.zeros_(torch.zeros(256)) #incfold - update conv bias shape for receiving ESM+tmbed output 
     
     #incfold - loading tmbed weights and biases
     channels=64
@@ -79,9 +78,9 @@ def main(args):
     model_weights["tmbed.model.dwc1.norm.eps"] = torch.tensor(float(eps))
     model_weights["tmbed.model.dwc2.norm.eps"] = torch.tensor(float(eps))
 
-    model_weights['tmbed.model.input.norm.channels'] = channels
-    model_weights['tmbed.model.dwc1.norm.channels'] = channels
-    model_weights['tmbed.model.dwc2.norm.channels'] = channels
+    model_weights['tmbed.model.input.norm.channels'] = torch.tensor(1280)
+    model_weights['tmbed.model.dwc1.norm.channels'] = torch.tensor(channels)
+    model_weights['tmbed.model.dwc2.norm.channels'] = torch.tensor(channels)
     #incfold - done
 
     model.load_state_dict(model_weights)
