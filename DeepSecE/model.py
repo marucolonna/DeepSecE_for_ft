@@ -5,6 +5,7 @@ from einops import rearrange
 import esm
 from DeepSecE.module import TransformerLayer, MLPLayer
 
+from tmbed.model import Predictor
 
 class EffectorTransformer(nn.Module):
 
@@ -13,6 +14,7 @@ class EffectorTransformer(nn.Module):
 
         super().__init__()
         self.pretrained_model, alphabet = esm.pretrained.esm1b_t33_650M_UR50S()
+        self.tmbed = Predictor() #incfold - adding tmbed
         self.padding_idx = alphabet.padding_idx
         self.dim = hid_dim
         self.repr_layer = repr_layer
@@ -29,6 +31,8 @@ class EffectorTransformer(nn.Module):
 
         for param in self.pretrained_model.parameters():
             param.requires_grad = False
+        for param in self.tmbed.parameters(): #incfold - freezing tmbed
+            param.requires_grad = False            
         for param in self.conv.parameters(): #incfold - freezing layers
             param.requires_grad = False #incfold
         for param in self.layers.parameters(): #incfold
@@ -47,8 +51,15 @@ class EffectorTransformer(nn.Module):
         x = out["representations"][self.repr_layer][:, 1:-1, :]  # (bs, seq_len, emb_dim)
         x = x * padding_mask.unsqueeze(-1).type_as(x)
 
-        x = rearrange(x, 'b n d -> b d n')
-        x = self.conv(x)  # dimension reduction
+        #add tmbed here - incfold
+        tmbed_out = self.tmbed(x, padding_mask) # (bs, hid_dim) - incfold
+        x = rearrange(x, 'b n d -> b d n')  # (bs, 1280, seq_len) - incfold
+        x = torch.cat([x, tmbed_out], dim=1)  # (bs, 1472, seq_len) - incfold
+        
+        x = self.conv(x)  # update in_channels to 1285
+        
+        #x = rearrange(x, 'b n d -> b d n')
+        #x = self.conv(x)  # dimension reduction
         x = rearrange(x, 'b d n -> b n d')
 
         batch = toks.shape[0]

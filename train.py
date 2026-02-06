@@ -19,7 +19,6 @@ from DeepSecE.dataset import TXSESequenceDataSet
 from DeepSecE.utils import  label2index, viz_conf_matrix
 from DeepSecE.trainer import train, test, set_seed, EarlyStopping
 
-
 def main(args):
 
     set_seed(args.seed)
@@ -36,8 +35,8 @@ def main(args):
     # Configure model
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if args.model == "effectortransformer":
-        model = EffectorTransformer(1280, 33, hid_dim=args.hid_dim, num_layers=args.num_layers,
-                            heads=args.num_heads, dropout_rate=args.dropout_rate, num_classes=2)
+        model = EffectorTransformer(1472, 33, hid_dim=args.hid_dim, num_layers=args.num_layers,
+                            heads=args.num_heads, dropout_rate=args.dropout_rate, num_classes=2) #incfold - update in_dim to 1472 after adding tmbed
     elif args.model == "esm1bmodel":
         model = ESM1bModel(1280, 33, unfreeze_last=True, hid_dim=args.hid_dim, dropout_rate=args.dropout_rate, num_classes=6)
     else:
