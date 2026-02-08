@@ -57,7 +57,8 @@ def main(args):
 
     tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
     tmbed_weights = torch.load(tmbed_weights_file)['model'] #incfold - tmbed weights
-    model_weights.update(tmbed_weights) #incfold - merging tmbed weights with DeepSecE weights
+    tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()}
+    model_weights = {**model_weights, **tmbed_weights} #incfold - merging tmbed weights with DeepSecE weights
     
     model.load_state_dict(model_weights)
     model.to(device)
