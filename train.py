@@ -57,10 +57,13 @@ def main(args):
 
     tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
     tmbed_weights = torch.load(tmbed_weights_file)['model'] #incfold - tmbed weights
-    tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()}
+    tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
+    key_to_remove = 'model.input.conv.weight' #incfold - removing input layer weights for compatibility
+    del tmbed_weights[key_to_remove]
+
     model_weights = {**model_weights, **tmbed_weights} #incfold - merging tmbed weights with DeepSecE weights
     
-    model.load_state_dict(model_weights)
+    model.load_state_dict(model_weights, strict = False) #incfold - no error for missing tmbed input weights
     model.to(device)
 
     # Configure datasets and dataloaders
