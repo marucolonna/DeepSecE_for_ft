@@ -48,14 +48,19 @@ class EffectorTransformer(nn.Module):
 
         out = self.pretrained_model(
             toks, repr_layers=[self.repr_layer], return_contacts=False)
-        x = out["representations"][self.repr_layer][:, 1:-1, :]  # (bs, seq_len, emb_dim)
+        x = out["representations"][self.repr_layer][:, 1:-1, :]  # (bs, seq_len, esm_dim)
         x = x * padding_mask.unsqueeze(-1).type_as(x)
+        print(f'esm shape: {x.shape}')
 
         #add tmbed here - incfold
-        tmbed_out = self.tmbed(x, padding_mask) # (bs, hid_dim) - incfold
-        x = rearrange(x, 'b n d -> b d n')  # (bs, 1280, seq_len) - incfold
-        x = torch.cat([x, tmbed_out], dim=1)  # (bs, 1472, seq_len) - incfold
+        tmbed_out = self.tmbed(x, padding_mask) # (bs, tmbed_dim, N) - incfold
+        print(f'tmbed_out.shape: {tmbed_out.shape}') 
+        x = rearrange(x, 'b n d -> b d n') # (bs, 1280, seq_len) - incfold
+        print(f'esm rearranged shape: {x.shape}')
         
+        x = torch.cat([x, tmbed_out], dim=1) # (bs, 1280+tmbed_dim, seq_len) - incfold
+        print(f'concat x.shape: {x.shape}')
+
         x = self.conv(x)  # update in_channels to 1285
         
         #x = rearrange(x, 'b n d -> b d n')
