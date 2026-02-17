@@ -60,24 +60,20 @@ class EffectorTransformer(nn.Module):
         #add tmbed here - incfold
         if self.tmbed_layer:
             pt5_out =self.protT5_encoder.embed(strs) #incfold
-            
-            pt5_out = pt5_out[:, 1:-1, :]  # incfold - remove T5 special tokens, to match ESM output
-            
-            esm_len = x.size(1)
-            if pt5_out.size(1) > esm_len:
-                pt5_out = pt5_out[:, :esm_len, :]
-            #elif pt5_out.size(1) < esm_len:
-            #    pad = esm_len - pt5_out.size(1)
-            #    pt5_out = torch.nn.functional.pad(pt5_out, (0,0,0,pad))
-           
             pt5_out = pt5_out.to(torch.float32)
+
+            esm_len = x.shape[1]
+
             lengths = [len(s) for s in strs] #incfold
             mask = make_mask(pt5_out, lengths) #incfold
             tmbed_out = self.tmbed(pt5_out,mask) #incfold - (bs, tmbed_dim, seq_len)
+            
+            if tmbed_out.size(1) > esm_len:
+                tmbed_out = tmbed_out[:, :esm_len, :]
 
             x = rearrange(x, 'b n d -> b d n') # incfold - (bs, 1280, seq_len)
 
-            print("pt5_out shape:", pt5_out.shape) #incfold - debugging print statement
+            print("tmbed_out shape:", tmbed_out.shape) #incfold - debugging print statement
             print("x shape before concat:", x.shape) #incfold - debugging print statement
             x = torch.cat([x, tmbed_out], dim=1) # incfold - (bs, 1472, seq_len)
         
