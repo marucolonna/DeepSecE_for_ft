@@ -61,21 +61,22 @@ class EffectorTransformer(nn.Module):
         if self.tmbed_layer:
             pt5_out =self.protT5_encoder.embed(strs) #incfold
             
+            pt5_out = pt5_out[:, :1022, :] #incfold - trim to max length of 1020 to match ESM output
             pt5_out = pt5_out[:, 1:-1, :]  # incfold - remove T5 special tokens, to match ESM output
-            pt5_out = pt5_out[:, :1020, :] #incfold - trim to max length of 1020 to match ESM output
-            print("pt5_out shape:", pt5_out.shape) #incfold - debugging print statement
-            print(type(pt5_out)) #incfold - debugging print statement
+            
+           
             pt5_out = pt5_out.to(torch.float32)
             lengths = [len(s) for s in strs] #incfold
             mask = make_mask(pt5_out, lengths) #incfold
             tmbed_out = self.tmbed(pt5_out,mask) #incfold - (bs, tmbed_dim, seq_len)
-            print("tmbed_out shape:", tmbed_out.shape) #incfold - debugging print statement
-            print(type(tmbed_out)) #incfold - debugging print statement
-
+            
             x = rearrange(x, 'b n d -> b d n') # incfold - (bs, 1280, seq_len)
+
+            print("pt5_out shape:", pt5_out.shape) #incfold - debugging print statement
+            print("x shape before concat:", x.shape) #incfold - debugging print statement
             x = torch.cat([x, tmbed_out], dim=1) # incfold - (bs, 1472, seq_len)
         
-        x = x.to(torch.float32)
+
         print("converted x to float32 for conv layer") #incfold - debugging print statement
 
         x = self.conv(x)  # update in_channels to 1285
