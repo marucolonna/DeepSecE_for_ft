@@ -6,6 +6,7 @@ import esm
 from DeepSecE.module import TransformerLayer, MLPLayer
 
 from tmbed.model import Predictor
+from tmbed.utils import make_mask
 from tmbed.embed import T5Encoder
 
 class EffectorTransformer(nn.Module):
@@ -62,7 +63,9 @@ class EffectorTransformer(nn.Module):
             
             pt5_out = pt5_out[:, 1:-1, :]  # incfold - remove T5 special tokens, to match ESM output
             pt5_out = pt5_out[:, :1020, :] #incfold - trim to max length of 1020 to match ESM output
-            tmbed_out = self.tmbed(pt5_out) #incfold - (bs, tmbed_dim, seq_len)
+            lengths = [len(s) for s in strs] #incfold
+            mask = make_mask(pt5_out, lengths) #incfold
+            tmbed_out = self.tmbed(pt5_out,mask) #incfold - (bs, tmbed_dim, seq_len)
 
             x = rearrange(x, 'b n d -> b d n') # incfold - (bs, 1280, seq_len)
             x = torch.cat([x, tmbed_out], dim=1) # incfold - (bs, 1472, seq_len)
