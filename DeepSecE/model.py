@@ -69,7 +69,8 @@ class EffectorTransformer(nn.Module):
 
             x = rearrange(x, 'b n d -> b d n') # incfold - (bs, 1280, seq_len)
             x = torch.cat([x, tmbed_out], dim=1) # incfold - (bs, 1472, seq_len)
-            x = x.to(torch.float32)
+        
+        x = x.to(torch.float32)
 
         x = self.conv(x)  # update in_channels to 1285
         
