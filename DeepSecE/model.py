@@ -50,7 +50,7 @@ class EffectorTransformer(nn.Module):
     def forward(self, strs, toks):
 
         toks = toks[:, :1022]
-        padding_mask = (toks != self.padding_idx)[:, 1:-1]
+        padding_mask = (toks != self.padding_idx)[:, 1:-1] #pad positions, not including CLS and EOS tokens (beginning and end of sequence tokens)
 
         out = self.pretrained_model(
             toks, repr_layers=[self.repr_layer], return_contacts=False)
@@ -68,13 +68,15 @@ class EffectorTransformer(nn.Module):
             mask = make_mask(pt5_out, lengths) #incfold
             tmbed_out = self.tmbed(pt5_out,mask) #incfold - (bs, tmbed_dim, seq_len)
             
-            if tmbed_out.size(1) > esm_len:
-                tmbed_out = tmbed_out[:, :esm_len, :]
+            tmbed_out = tmbed_out[:, :esm_len, :] #incfold
 
             x = rearrange(x, 'b n d -> b d n') # incfold - (bs, 1280, seq_len)
 
             print("tmbed_out shape:", tmbed_out.shape) #incfold - debugging print statement
             print("x shape before concat:", x.shape) #incfold - debugging print statement
+
+            print(f"Shapes match: ESM {x.shape} == PT5 {tmbed_out.shape}")
+
             x = torch.cat([x, tmbed_out], dim=1) # incfold - (bs, 1472, seq_len)
         
 
