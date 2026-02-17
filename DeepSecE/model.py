@@ -6,15 +6,18 @@ import esm
 from DeepSecE.module import TransformerLayer, MLPLayer
 
 from tmbed.model import Predictor
+from tmbed.embed import T5Encoder
 
 class EffectorTransformer(nn.Module):
 
     def __init__(self, emb_dim, repr_layer, num_layers, heads,
-                 hid_dim=256, dropout_rate=0.4, num_classes=2, attn_dropout=0.05, return_embedding=False, return_attn=False):
+                 hid_dim=256, dropout_rate=0.4, num_classes=2, attn_dropout=0.05, return_embedding=False, return_attn=False, tmbed_layer=False):
 
         super().__init__()
         self.pretrained_model, alphabet = esm.pretrained.esm1b_t33_650M_UR50S()
-        self.tmbed = Predictor() #incfold - adding tmbed
+        self.tmbed_layer = tmbed_layer
+        self.tmbed = Predictor()
+        self.protT5_encoder = T5Encoder()
         self.padding_idx = alphabet.padding_idx
         self.dim = hid_dim
         self.repr_layer = repr_layer
@@ -30,13 +33,15 @@ class EffectorTransformer(nn.Module):
         self.clf = nn.Linear(hid_dim, num_classes) #this layer I will train for FT
 
         for param in self.pretrained_model.parameters():
-            param.requires_grad = False
-        for param in self.tmbed.parameters(): #incfold - freezing tmbed
-            param.requires_grad = False            
+            param.requires_grad = False        
         for param in self.conv.parameters(): #incfold - freezing layers
             param.requires_grad = False #incfold
         for param in self.layers.parameters(): #incfold
             param.requires_grad = False #incfold
+        
+        if self.tmbed_layer:
+            for param in self.tmbed.parameters(): #incfold -freeze tmbed
+                param.requires_grad = False #incfold
 
         self.return_embedding = return_embedding
         self.return_attn = return_attn
@@ -50,21 +55,20 @@ class EffectorTransformer(nn.Module):
             toks, repr_layers=[self.repr_layer], return_contacts=False)
         x = out["representations"][self.repr_layer][:, 1:-1, :]  # (bs, seq_len, esm_dim)
         x = x * padding_mask.unsqueeze(-1).type_as(x)
-        print(f'esm shape: {x.shape}')
 
         #add tmbed here - incfold
-        tmbed_out = self.tmbed(x, padding_mask) # (bs, tmbed_dim, N) - incfold
-        print(f'tmbed_out.shape: {tmbed_out.shape}') 
-        x = rearrange(x, 'b n d -> b d n') # (bs, 1280, seq_len) - incfold
-        print(f'esm rearranged shape: {x.shape}')
-        
-        x = torch.cat([x, tmbed_out], dim=1) # (bs, 1280+tmbed_dim, seq_len) - incfold
-        print(f'concat x.shape: {x.shape}')
+        if self.tmbed_layer:
+            pt5_out =self.protT5_encoder.embed(strs) #incfold
+            
+            pt5_out = pt5_out[:, 1:-1, :]  # incfold - remove T5 special tokens, to match ESM output
+            pt5_out = pt5_out[:, :1020, :] #incfold - trim to max length of 1020 to match ESM output
+            tmbed_out = self.tmbed(pt5_out) #incfold - (bs, tmbed_dim, seq_len)
+
+            x = rearrange(x, 'b n d -> b d n') # incfold - (bs, 1280, seq_len)
+            x = torch.cat([x, tmbed_out], dim=1) # incfold - (bs, 1472, seq_len)
 
         x = self.conv(x)  # update in_channels to 1285
         
-        #x = rearrange(x, 'b n d -> b d n')
-        #x = self.conv(x)  # dimension reduction
         x = rearrange(x, 'b d n -> b n d')
 
         batch = toks.shape[0]
