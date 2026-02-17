@@ -36,7 +36,7 @@ def main(args):
     # Configure model
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if args.model == "effectortransformer":
-        if args.with_tmbed == 'yes':
+        if args.with_tmbed == 1:
             model = EffectorTransformer(1472, 33, hid_dim=args.hid_dim, num_layers=args.num_layers,
                                 heads=args.num_heads, dropout_rate=args.dropout_rate, num_classes=2, tmbed_layer=True) #incfold - update in_dim to 1472 after adding tmbed
         else:
@@ -58,7 +58,7 @@ def main(args):
     bound = 1 / fan_in ** 0.5 if fan_in > 0 else 0
     model_weights['clf.bias'] = nn.init.uniform_(torch.zeros(2), -bound, bound)
 
-    if args.with_tmbed == 'yes':
+    if args.with_tmbed == 1:
         
         tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
         tmbed_weights = torch.load(tmbed_weights_file) #incfold
@@ -219,8 +219,8 @@ if __name__ == '__main__':
                         help="ratio of learning rate decay. (default: 0.5)")
     parser.add_argument('--lr_decay_min_lr', default=5e-6, type=float,
                         help="minimum value of learning rate. (default: 5e-6)")
-    parser.add_argument('--with_tmbed', default='no', type=float,
-                        help="enter 'yes' to add frozen tmbed layer for training - (default: 'no')")                       
+    parser.add_argument('--with_tmbed', default=0, type=float,
+                        help="enter 1 to add frozen tmbed layer for training - (default: 0)")                       
 
     # Training Info
     parser.add_argument('--max_epochs', default=30, type=int,
