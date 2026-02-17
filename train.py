@@ -59,13 +59,11 @@ def main(args):
     model_weights['clf.bias'] = nn.init.uniform_(torch.zeros(2), -bound, bound)
 
     if args.with_tmbed == 'yes':
-        model_weights['conv.weight'] = nn.init.kaiming_uniform_(torch.zeros(256, 1472, 1)) #incfold - update conv weight shape for receiving ESM+tmbed output
         
         tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
-        tmbed_weights = torch.load(tmbed_weights_file)
+        tmbed_weights = torch.load(tmbed_weights_file) #incfold
         tmbed_weights = tmbed_weights['model'] #incfold - tmbed weights
         tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
-        del tmbed_weights['tmbed.model.input.conv.weight']
 
         model_weights = {**model_weights, **tmbed_weights} #incfold - merging tmbed weights with DeepSecE weights
     
