@@ -64,32 +64,33 @@ class EffectorTransformer(nn.Module):
             with torch.no_grad(): 
                 pt5_out,first_seq_tokens, decoded, t5_input_ids =self.protT5_encoder.embed(strs) #incfold
                 pt5_out = pt5_out.to(torch.float32)
+                pt5_out = pt5_out[:, 1:-1, :]
 
-            batch_size = pt5_out.shape[0]
-            pt5_out_trimmed = []
+            #batch_size = pt5_out.shape[0]
+            #pt5_out_trimmed = []
 
-            for i in range(batch_size):
-                # Decode tokens to see which is </s>
-                tokens = t5_input_ids[i].cpu().numpy().tolist()
-                decoded_tokens = [self.protT5_encoder.tokenizer.decode([tid]) for tid in tokens]
+            # for i in range(batch_size):
+            #     # Decode tokens to see which is </s>
+            #     tokens = t5_input_ids[i].cpu().numpy().tolist()
+            #     decoded_tokens = [self.protT5_encoder.tokenizer.decode([tid]) for tid in tokens]
                 
-                # Find indices of <s> and </s>
-                start_idx = next((j for j, t in enumerate(decoded_tokens) if '<s>' in t), None)
-                end_idx = next((j for j in range(len(decoded_tokens)-1, -1, -1) if '</s>' in decoded_tokens[j]), None)
+            #     # Find indices of <s> and </s>
+            #     start_idx = next((j for j, t in enumerate(decoded_tokens) if '<s>' in t), None)
+            #     end_idx = next((j for j in range(len(decoded_tokens)-1, -1, -1) if '</s>' in decoded_tokens[j]), None)
                 
-                # Trim to exclude <s> and </s>
-                if start_idx is not None and end_idx is not None:
-                    trimmed = pt5_out[i, start_idx+1:end_idx, :]
+            #     # Trim to exclude <s> and </s>
+            #     if start_idx is not None and end_idx is not None:
+            #         pt5_out_trimmed = pt5_out[i, start_idx+1:end_idx, :]
                 
-                pt5_out_trimmed.append(trimmed)
+            #         pt5_out_trimmed.append(trimmed)
 
-            # Pad to uniform length
-            max_seq_len = max([t.shape[0] for t in pt5_out_trimmed])
-            pt5_out = torch.zeros(batch_size, max_seq_len, pt5_out.shape[2], 
-                                device=pt5_out.device, dtype=pt5_out.dtype)
-            for i in range(batch_size):
-                length = pt5_out_trimmed[i].shape[0]
-                pt5_out[i, :length, :] = pt5_out_trimmed[i]
+            # # Pad to uniform length
+            # max_seq_len = max([t.shape[0] for t in pt5_out_trimmed])
+            # pt5_out = torch.zeros(batch_size, max_seq_len, pt5_out.shape[2], 
+            #                     device=pt5_out.device, dtype=pt5_out.dtype)
+            # for i in range(batch_size):
+            #     length = pt5_out_trimmed[i].shape[0]
+            #     pt5_out[i, :length, :] = pt5_out_trimmed[i]
 
             print("first sequence tokens:", first_seq_tokens) #incfold - debugging print statement
             print("decoded first sequence tokens:", decoded) #incfold - debugging print statement
