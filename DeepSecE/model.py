@@ -41,6 +41,8 @@ class EffectorTransformer(nn.Module):
             param.requires_grad = False #incfold
         
         if self.tmbed_layer:
+            for param in self.protT5_encoder.parameters(): #incfold -freeze tmbed
+                param.requires_grad = False #incfold
             for param in self.tmbed.parameters(): #incfold -freeze tmbed
                 param.requires_grad = False #incfold
 
@@ -61,7 +63,7 @@ class EffectorTransformer(nn.Module):
 
         #add tmbed here - incfold
         if self.tmbed_layer:
-            pt5_out,first_seq_tokens, decoded =self.protT5_encoder.embed(strs) #incfold
+            pt5_out,first_seq_tokens, decoded, t5_input_ids =self.protT5_encoder.embed(strs) #incfold
             pt5_out = pt5_out.to(torch.float32)
             #pt5_out = pt5_out[:, 1:-1, :] #incfold - removing CLS and EOS tokens from ProtT5 output to match ESM
 
