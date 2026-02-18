@@ -66,7 +66,7 @@ class EffectorTransformer(nn.Module):
                 pt5_out = pt5_out.to(torch.float32)
                 #pt5_out = pt5_out[:, 1:-1, :]
 
-            # lengths = [len(s) for s in strs] #incfold
+            lengths = [len(s) for s in strs] #incfold
             # for i, l in enumerate(lengths):
             #     eos_position = l # +1 because of the <s> token that is prepended
             #     pt5_out[i] = pt5_out[i, 1:eos_position, :] # trim to remove <s> and </s> tokens
