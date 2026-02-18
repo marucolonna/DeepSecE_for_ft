@@ -104,9 +104,12 @@ class EffectorTransformer(nn.Module):
             
             mask = make_mask(pt5_out, lengths) #incfold
             tmbed_out = self.tmbed(pt5_out,mask) #incfold - (bs, tmbed_dim, seq_len)
-            tmbed_out = tmbed_out[:, :, :-1]
 
             x = rearrange(x, 'b n d -> b d n') # incfold - (bs, 1280, seq_len)
+            
+            tmbed_out = tmbed_out[:, :, :-1]
+            if tmbed_out.shape[2] > x.shape[2]: #incfold - if tmbed output is shorter than esm output, pad with zeros
+                tmbed_out = tmbed_out[:, :, :-1] #remove additional token from tmbed output to match esm output length
 
             print("tmbed embedding shape for concat:", tmbed_out.shape) #incfold - debugging print statement
             print("x shape for concat:", x.shape) #incfold - debugging print statement
