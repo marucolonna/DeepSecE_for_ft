@@ -48,6 +48,8 @@ class EffectorTransformer(nn.Module):
         self.return_attn = return_attn
 
     def forward(self, strs, toks):
+        
+        print("sequence:", strs[0]) #incfold - debugging print statement
 
         toks = toks[:, :1022]
         padding_mask = (toks != self.padding_idx)[:, 1:-1] #pad positions, not including CLS and EOS tokens (beginning and end of sequence tokens)
@@ -62,20 +64,16 @@ class EffectorTransformer(nn.Module):
             pt5_out =self.protT5_encoder.embed(strs) #incfold
             pt5_out = pt5_out.to(torch.float32)
 
-            esm_len = x.shape[1]
+            print("pt5 out shape:", pt5_out.shape) #incfold - debugging print statement
 
             lengths = [len(s) for s in strs] #incfold
             mask = make_mask(pt5_out, lengths) #incfold
             tmbed_out = self.tmbed(pt5_out,mask) #incfold - (bs, tmbed_dim, seq_len)
-            
-            tmbed_out = tmbed_out[:, :esm_len, :] #incfold
 
             x = rearrange(x, 'b n d -> b d n') # incfold - (bs, 1280, seq_len)
 
-            print("tmbed_out shape:", tmbed_out.shape) #incfold - debugging print statement
-            print("x shape before concat:", x.shape) #incfold - debugging print statement
-
-            print(f"Shapes match: ESM {x.shape} == PT5 {tmbed_out.shape}")
+            print("tmbed embedding shape for concat:", tmbed_out.shape) #incfold - debugging print statement
+            print("x shape for concat:", x.shape) #incfold - debugging print statement
 
             x = torch.cat([x, tmbed_out], dim=1) # incfold - (bs, 1472, seq_len)
         
