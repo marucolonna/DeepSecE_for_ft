@@ -120,9 +120,6 @@ class EffectorTransformer(nn.Module):
         out = torch.cat([x[i, :len(strs[i]) + 1].mean(0).unsqueeze(0)
                         for i in range(batch)], dim=0) # average pooling along the sequence
 
-        #if self.return_embedding:
-        return out #incfold - return embedding for FT
-        #else:
         logits = self.clf(out)
         
         if self.return_attn:
