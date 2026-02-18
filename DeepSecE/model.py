@@ -64,7 +64,12 @@ class EffectorTransformer(nn.Module):
             with torch.no_grad(): 
                 pt5_out,first_seq_tokens, decoded, t5_input_ids =self.protT5_encoder.embed(strs) #incfold
                 pt5_out = pt5_out.to(torch.float32)
-                pt5_out = pt5_out[:, 1:-1, :]
+                #pt5_out = pt5_out[:, 1:-1, :]
+
+            # lengths = [len(s) for s in strs] #incfold
+            # for i, l in enumerate(lengths):
+            #     eos_position = l # +1 because of the <s> token that is prepended
+            #     pt5_out[i] = pt5_out[i, 1:eos_position, :] # trim to remove <s> and </s> tokens
 
             #batch_size = pt5_out.shape[0]
             #pt5_out_trimmed = []
@@ -96,9 +101,10 @@ class EffectorTransformer(nn.Module):
             print("decoded first sequence tokens:", decoded) #incfold - debugging print statement
             print("pt5 out shape:", pt5_out.shape) #incfold - debugging print statement
 
-            lengths = [len(s) for s in strs] #incfold
+            
             mask = make_mask(pt5_out, lengths) #incfold
             tmbed_out = self.tmbed(pt5_out,mask) #incfold - (bs, tmbed_dim, seq_len)
+            tmbed_out = tmbed_out[:, 1:-1, :]
 
             x = rearrange(x, 'b n d -> b d n') # incfold - (bs, 1280, seq_len)
 
