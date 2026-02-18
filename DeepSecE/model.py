@@ -104,7 +104,7 @@ class EffectorTransformer(nn.Module):
             
             mask = make_mask(pt5_out, lengths) #incfold
             tmbed_out = self.tmbed(pt5_out,mask) #incfold - (bs, tmbed_dim, seq_len)
-            tmbed_out = tmbed_out[:, 1:-1, :]
+            tmbed_out = tmbed_out[:, :, 1:-1]
 
             x = rearrange(x, 'b n d -> b d n') # incfold - (bs, 1280, seq_len)
 
