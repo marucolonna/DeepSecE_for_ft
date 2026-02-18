@@ -61,9 +61,12 @@ class EffectorTransformer(nn.Module):
 
         #add tmbed here - incfold
         if self.tmbed_layer:
-            pt5_out =self.protT5_encoder.embed(strs) #incfold
+            pt5_out,first_seq_tokens, decoded =self.protT5_encoder.embed(strs) #incfold
             pt5_out = pt5_out.to(torch.float32)
+            pt5_out = pt5_out[:, 1:-1, :] #incfold - removing CLS and EOS tokens from ProtT5 output to match ESM
 
+            print("first sequence tokens:", first_seq_tokens) #incfold - debugging print statement
+            print("decoded first sequence tokens:", decoded) #incfold - debugging print statement
             print("pt5 out shape:", pt5_out.shape) #incfold - debugging print statement
 
             lengths = [len(s) for s in strs] #incfold
@@ -91,14 +94,15 @@ class EffectorTransformer(nn.Module):
         out = torch.cat([x[i, :len(strs[i]) + 1].mean(0).unsqueeze(0)
                         for i in range(batch)], dim=0) # average pooling along the sequence
 
-        if self.return_embedding:
-            return out
+        #if self.return_embedding:
+        return out #incfold - return embedding for FT
+        #else:
+        logits = self.clf(out)
+        
+        if self.return_attn:
+            return logits, attn
         else:
-            logits = self.clf(out)
-            if self.return_attn:
-                return logits, attn
-            else:
-                return logits
+            return logits
 
 
 class ESM1bModel(nn.Module):
