@@ -58,65 +58,8 @@ class EffectorTransformer(nn.Module):
             toks, repr_layers=[self.repr_layer], return_contacts=False)
         x = out["representations"][self.repr_layer][:, 1:-1, :]  # (bs, seq_len, esm_dim)
         x = x * padding_mask.unsqueeze(-1).type_as(x)
-
-        #add tmbed here - incfold
-        if self.tmbed_layer:
-            with torch.no_grad(): 
-                pt5_out,first_seq_tokens, decoded, t5_input_ids =self.protT5_encoder.embed(strs) #incfold
-                pt5_out = pt5_out.to(torch.float32)
-                #pt5_out = pt5_out[:, 1:-1, :]
-
-            lengths = [len(s) for s in strs] #incfold
-            # for i, l in enumerate(lengths):
-            #     eos_position = l # +1 because of the <s> token that is prepended
-            #     pt5_out[i] = pt5_out[i, 1:eos_position, :] # trim to remove <s> and </s> tokens
-
-            #batch_size = pt5_out.shape[0]
-            #pt5_out_trimmed = []
-
-            # for i in range(batch_size):
-            #     # Decode tokens to see which is </s>
-            #     tokens = t5_input_ids[i].cpu().numpy().tolist()
-            #     decoded_tokens = [self.protT5_encoder.tokenizer.decode([tid]) for tid in tokens]
-                
-            #     # Find indices of <s> and </s>
-            #     start_idx = next((j for j, t in enumerate(decoded_tokens) if '<s>' in t), None)
-            #     end_idx = next((j for j in range(len(decoded_tokens)-1, -1, -1) if '</s>' in decoded_tokens[j]), None)
-                
-            #     # Trim to exclude <s> and </s>
-            #     if start_idx is not None and end_idx is not None:
-            #         pt5_out_trimmed = pt5_out[i, start_idx+1:end_idx, :]
-                
-            #         pt5_out_trimmed.append(trimmed)
-
-            # # Pad to uniform length
-            # max_seq_len = max([t.shape[0] for t in pt5_out_trimmed])
-            # pt5_out = torch.zeros(batch_size, max_seq_len, pt5_out.shape[2], 
-            #                     device=pt5_out.device, dtype=pt5_out.dtype)
-            # for i in range(batch_size):
-            #     length = pt5_out_trimmed[i].shape[0]
-            #     pt5_out[i, :length, :] = pt5_out_trimmed[i]
-
-            print("first sequence tokens:", first_seq_tokens) #incfold - debugging print statement
-            print("decoded first sequence tokens:", decoded) #incfold - debugging print statement
-            print("pt5 out shape:", pt5_out.shape) #incfold - debugging print statement
-
-            
-            mask = make_mask(pt5_out, lengths) #incfold
-            tmbed_out = self.tmbed(pt5_out,mask) #incfold - (bs, tmbed_dim, seq_len)
-
-            x = rearrange(x, 'b n d -> b d n') # incfold - (bs, 1280, seq_len)
-            
-            tmbed_out = tmbed_out[:, :, :-1]
-            if tmbed_out.shape[2] > x.shape[2]: #incfold - if tmbed output is shorter than esm output, pad with zeros
-                tmbed_out = tmbed_out[:, :, :-1] #remove additional token from tmbed output to match esm output length
-
-            print("tmbed embedding shape for concat:", tmbed_out.shape) #incfold - debugging print statement
-            print("x shape for concat:", x.shape) #incfold - debugging print statement
-
-            x = torch.cat([x, tmbed_out], dim=1) # incfold - (bs, 1472, seq_len)
         
-
+        x = rearrange(x, 'b n d -> b d n')
         x = self.conv(x)  # update in_channels to 1285
         
         x = rearrange(x, 'b d n -> b n d')
@@ -129,6 +72,30 @@ class EffectorTransformer(nn.Module):
 
         out = torch.cat([x[i, :len(strs[i]) + 1].mean(0).unsqueeze(0)
                         for i in range(batch)], dim=0) # average pooling along the sequence
+
+        #add tmbed here - incfold
+        if self.tmbed_layer:
+            with torch.no_grad(): 
+                pt5_out = self.protT5_encoder.embed(strs) #incfold
+                pt5_out = pt5_out.to(torch.float32)
+
+            lengths = [len(s) for s in strs] #incfold
+            mask = make_mask(pt5_out, lengths) #incfold
+            tmbed_out = self.tmbed(pt5_out,mask) #incfold - 'b d n'
+
+            tmbed_out = rearrange(tmbed_out, 'b d n -> b n d')
+
+            tmbed_out = torch.cat([tmbed_out[i, :len(strs[i]) + 1].mean(0).unsqueeze(0)
+                        for i in range(batch)], dim=0) #incfold - average pooling for tmbed output (bs, tmbed_dim)     
+            
+            #tmbed_out = tmbed_out[:, :, :-1]
+            #if tmbed_out.shape[2] > x.shape[2]: #incfold - for seq>= 1020, extra character in tmbed
+            #    tmbed_out = tmbed_out[:, :, :-1] #incfold - remove additional token from tmbed output to match esm output length
+
+            #print("tmbed embedding shape for concat:", tmbed_out.shape) #incfold - debugging print statement
+            #print("x shape for concat:", x.shape) #incfold - debugging print statement
+
+        out = torch.cat([out, tmbed_out], dim=1) #incfold - concatenate along feature dimension (bs, 1280+tmbed_dim)
 
         logits = self.clf(out)
         
