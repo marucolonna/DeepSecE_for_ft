@@ -65,7 +65,7 @@ class EffectorTransformer(nn.Module):
         x = self.conv(x)  # update in_channels to 1285
         
         x = rearrange(x, 'b d n -> b n d')
-
+        
         batch = toks.shape[0]
         for layer in self.layers:
             x, attn = layer(
