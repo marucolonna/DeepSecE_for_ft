@@ -31,7 +31,11 @@ class EffectorTransformer(nn.Module):
                 for _ in range(self.num_layers)
             ]
         )
-        self.clf = nn.Linear(hid_dim, num_classes) #this layer I will train for FT
+        if self.tmbed_layer:
+            clf_input_dim = 448
+            self.clf = nn.Linear(clf_input_dim, num_classes) #incfold - update input dimension for classifier after concatenating tmbed output
+        else
+            self.clf = nn.Linear(hid_dim, num_classes) #this layer I will train for FT
 
         for param in self.pretrained_model.parameters():
             param.requires_grad = False        
@@ -71,7 +75,7 @@ class EffectorTransformer(nn.Module):
             )
 
         out = torch.cat([x[i, :len(strs[i]) + 1].mean(0).unsqueeze(0)
-                        for i in range(batch)], dim=0) # average pooling along the sequence
+                        for i in range(batch)], dim=0) # average pooling along the sequence (bs, 256)
 
         #add tmbed here - incfold
         if self.tmbed_layer:
