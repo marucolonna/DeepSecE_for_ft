@@ -34,7 +34,7 @@ class EffectorTransformer(nn.Module):
         if self.tmbed_layer:
             clf_input_dim = 448
             self.clf = nn.Linear(clf_input_dim, num_classes) #incfold - update input dimension for classifier after concatenating tmbed output
-        else
+        else:
             self.clf = nn.Linear(hid_dim, num_classes) #this layer I will train for FT
 
         for param in self.pretrained_model.parameters():
