@@ -37,7 +37,7 @@ def main(args):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if args.model == "effectortransformer":
         if args.with_tmbed == 1:
-            model = EffectorTransformer(1472, 33, hid_dim=args.hid_dim, num_layers=args.num_layers,
+            model = EffectorTransformer(1280, 33, hid_dim=args.hid_dim, num_layers=args.num_layers,
                                 heads=args.num_heads, dropout_rate=args.dropout_rate, num_classes=2, tmbed_layer=True) #incfold - update in_dim to 1472 after adding tmbed
         else:
             model = EffectorTransformer(1280, 33, hid_dim=args.hid_dim, num_layers=args.num_layers,
