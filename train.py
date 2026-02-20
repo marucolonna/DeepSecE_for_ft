@@ -38,7 +38,7 @@ def main(args):
     if args.model == "effectortransformer":
         if args.with_tmbed == 1:
             model = EffectorTransformer(1280, 33, hid_dim=args.hid_dim, num_layers=args.num_layers,
-                                heads=args.num_heads, dropout_rate=args.dropout_rate, num_classes=2, tmbed_layer=True) #incfold - update in_dim to 1472 after adding tmbed
+                                heads=args.num_heads, dropout_rate=args.dropout_rate, num_classes=2, tmbed_layer=True)
         else:
             model = EffectorTransformer(1280, 33, hid_dim=args.hid_dim, num_layers=args.num_layers,
                                 heads=args.num_heads, dropout_rate=args.dropout_rate, num_classes=2) #incfold
@@ -65,10 +65,10 @@ def main(args):
         tmbed_weights = tmbed_weights['model'] #incfold - tmbed weights
         tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
 
-        model_weights['conv.weight'] = nn.init.kaiming_uniform_(torch.zeros(256, 1472, 1)) #incfold - update conv weight shape for receiving ESM+tmbed output
-        fan_in, _ = nn.init._calculate_fan_in_and_fan_out(model_weights['conv.weight'])
-        bound = 1 / fan_in ** 0.5 if fan_in > 0 else 0
-        model_weights['conv.bias'] = nn.init.uniform_(torch.zeros(256), -bound, bound) #incfold - update conv bias shape for receiving ESM+tmbed output
+        #model_weights['conv.weight'] = nn.init.kaiming_uniform_(torch.zeros(256, 1472, 1)) #incfold - update conv weight shape for receiving ESM+tmbed output
+        #fan_in, _ = nn.init._calculate_fan_in_and_fan_out(model_weights['conv.weight'])
+        #bound = 1 / fan_in ** 0.5 if fan_in > 0 else 0
+        #model_weights['conv.bias'] = nn.init.uniform_(torch.zeros(256), -bound, bound) #incfold - update conv bias shape for receiving ESM+tmbed output
         
         model_weights = {**model_weights, **tmbed_weights} #incfold - merging tmbed weights with DeepSecE weights
 
