@@ -52,8 +52,6 @@ class EffectorTransformer(nn.Module):
         self.return_attn = return_attn
 
     def forward(self, strs, toks):
-        
-        print("sequence:", strs[0]) #incfold - debugging print statement
 
         toks = toks[:, :1022]
         padding_mask = (toks != self.padding_idx)[:, 1:-1] #pad positions, not including CLS and EOS tokens (beginning and end of sequence tokens)
@@ -90,14 +88,7 @@ class EffectorTransformer(nn.Module):
             tmbed_out = rearrange(tmbed_out, 'b d n -> b n d')
 
             tmbed_out = torch.cat([tmbed_out[i, :len(strs[i]) + 1].mean(0).unsqueeze(0)
-                        for i in range(batch)], dim=0) #incfold - average pooling for tmbed output (bs, tmbed_dim)     
-            
-            #tmbed_out = tmbed_out[:, :, :-1]
-            #if tmbed_out.shape[2] > x.shape[2]: #incfold - for seq>= 1020, extra character in tmbed
-            #    tmbed_out = tmbed_out[:, :, :-1] #incfold - remove additional token from tmbed output to match esm output length
-
-            #print("tmbed embedding shape for concat:", tmbed_out.shape) #incfold - debugging print statement
-            #print("x shape for concat:", x.shape) #incfold - debugging print statement
+                        for i in range(batch)], dim=0) #incfold - average pooling for tmbed output (bs, tmbed_dim)
 
         out = torch.cat([out, tmbed_out], dim=1) #incfold - concatenate along feature dimension (bs, 1280+tmbed_dim)
 
