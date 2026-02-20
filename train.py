@@ -53,10 +53,6 @@ def main(args):
         model_weights = torch.load(args.model_initial, map_location="cpu")
     else:
         model_weights = torch.load(args.model_initial)
-    model_weights['clf.weight'] = nn.init.kaiming_uniform_(torch.zeros(2,256))
-    fan_in, _ = nn.init._calculate_fan_in_and_fan_out(model_weights['clf.weight'])
-    bound = 1 / fan_in ** 0.5 if fan_in > 0 else 0
-    model_weights['clf.bias'] = nn.init.uniform_(torch.zeros(2), -bound, bound)
 
     if args.with_tmbed == 1:
         
@@ -65,12 +61,18 @@ def main(args):
         tmbed_weights = tmbed_weights['model'] #incfold - tmbed weights
         tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
 
-        #model_weights['conv.weight'] = nn.init.kaiming_uniform_(torch.zeros(256, 1472, 1)) #incfold - update conv weight shape for receiving ESM+tmbed output
-        #fan_in, _ = nn.init._calculate_fan_in_and_fan_out(model_weights['conv.weight'])
-        #bound = 1 / fan_in ** 0.5 if fan_in > 0 else 0
-        #model_weights['conv.bias'] = nn.init.uniform_(torch.zeros(256), -bound, bound) #incfold - update conv bias shape for receiving ESM+tmbed output
-        
+        model_weights['clf.weight'] = nn.init.kaiming_uniform_(torch.zeros(2,448)) #incfold - classifier initialization - dim=488 after concatenating tmbed output
+        fan_in, _ = nn.init._calculate_fan_in_and_fan_out(model_weights['clf.weight']) #incfold 
+        bound = 1 / fan_in ** 0.5 if fan_in > 0 else 0 #incfold 
+        model_weights['clf.bias'] = nn.init.uniform_(torch.zeros(2), -bound, bound) #incfold 
+
         model_weights = {**model_weights, **tmbed_weights} #incfold - merging tmbed weights with DeepSecE weights
+
+    else:
+        model_weights['clf.weight'] = nn.init.kaiming_uniform_(torch.zeros(2,256)) #incfold - classifier initialization - dim=256 without tmbed
+        fan_in, _ = nn.init._calculate_fan_in_and_fan_out(model_weights['clf.weight']) #incfold 
+        bound = 1 / fan_in ** 0.5 if fan_in > 0 else 0 #incfold 
+        model_weights['clf.bias'] = nn.init.uniform_(torch.zeros(2), -bound, bound) #incfold 
 
     model.load_state_dict(model_weights, strict = False) #incfold - no error for missing tmbed input weights
     model.to(device)
