@@ -124,10 +124,10 @@ def main(args):
     
     print(f'Loading model from {args.model_location}')
     if args.no_cuda:
-        model_weights = torch.load(Path(args.model_location))
+        model_weights = torch.load(args.model_location, map_location="cpu")
 
         tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
-        tmbed_weights = torch.load(tmbed_weights_file)
+        tmbed_weights = torch.load(tmbed_weights_file, map_location="cpu")
         tmbed_weights = tmbed_weights['model']
         tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
 
@@ -135,7 +135,7 @@ def main(args):
         model.load_state_dict(model_weights, map_location="cpu")
      
     else:
-        model_weights = torch.load(Path(args.model_location))
+        model_weights = torch.load(args.model_location)
         
         tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
         tmbed_weights = torch.load(tmbed_weights_file)
