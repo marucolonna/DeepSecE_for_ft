@@ -143,7 +143,7 @@ def main(args):
         tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
 
         model_weights = {**model_weights, **tmbed_weights}
-        model.load_state_dict(model_weights))
+        model.load_state_dict(model_weights)
 
     predict(model, args.fasta_path, args.batch_size, device,
             args.out_dir, args.is_inc_labels, args.save_attn)
