@@ -132,7 +132,7 @@ def main(args):
         tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
 
         model_weights = {**model_weights, **tmbed_weights}
-        model.load_state_dict(model_weights, map_location="cpu"))
+        model.load_state_dict(model_weights, map_location="cpu")
      
     else:
         model_weights = torch.load(Path(args.model_location))
