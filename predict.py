@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+from pathlib import Path
 import random
 import time
 from argparse import ArgumentParser
@@ -123,9 +124,19 @@ def main(args):
     
     print(f'Loading model from {args.model_location}')
     if args.no_cuda:
-        model.load_state_dict(torch.load(args.model_location, map_location="cpu"))
+        model_weights = Path(args.model_location)
+        tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
+        tmbed_weights = torch.load(tmbed_weights_file)
+        model_weights = {**model_weights, **tmbed_weights}
+        model.load_state_dict(torch.load(model_weights, map_location="cpu"))
+     
     else:
         model.load_state_dict(torch.load(args.model_location))
+        model_weights = Path(args.model_location)
+        tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
+        tmbed_weights = torch.load(tmbed_weights_file)
+        model_weights = {**model_weights, **tmbed_weights}
+        model.load_state_dict(torch.load(model_weights, map_location="cpu"))
 
     predict(model, args.fasta_path, args.batch_size, device,
             args.out_dir, args.is_inc_labels, args.save_attn)
