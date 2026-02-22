@@ -124,19 +124,26 @@ def main(args):
     
     print(f'Loading model from {args.model_location}')
     if args.no_cuda:
-        model_weights = Path(args.model_location)
+        model_weights = torch.load(Path(args.model_location))
+
         tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
         tmbed_weights = torch.load(tmbed_weights_file)
+        tmbed_weights = tmbed_weights['model']
+        tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
+
         model_weights = {**model_weights, **tmbed_weights}
-        model.load_state_dict(torch.load(model_weights, map_location="cpu"))
+        model.load_state_dict(model_weights, map_location="cpu"))
      
     else:
-        model.load_state_dict(torch.load(args.model_location))
-        model_weights = Path(args.model_location)
+        model_weights = torch.load(Path(args.model_location))
+        
         tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
         tmbed_weights = torch.load(tmbed_weights_file)
+        tmbed_weights = tmbed_weights['model']
+        tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
+
         model_weights = {**model_weights, **tmbed_weights}
-        model.load_state_dict(torch.load(model_weights, map_location="cpu"))
+        model.load_state_dict(model_weights))
 
     predict(model, args.fasta_path, args.batch_size, device,
             args.out_dir, args.is_inc_labels, args.save_attn)
