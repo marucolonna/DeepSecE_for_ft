@@ -11,14 +11,13 @@ import torch
 import torch.nn as nn
 
 class AttentionPooling(nn.Module):
-    def __init__(self, embed_dim, num_heads, key_padding_mask=None):
+    def __init__(self, embed_dim, num_heads ):
         super().__init__()
         self.mha = nn.MultiheadAttention(embed_dim, num_heads, batch_first=True)
         # The learned "summary" query
         self.query = nn.Parameter(torch.randn(1, 1, embed_dim))
-        self.key_padding_mask = key_padding_mask
 
-    def forward(self, x):
+    def forward(self, x, key_padding_mask):
         # x shape: [batch, seq_len, embed_dim]
         batch_size = x.size(0)
         
@@ -27,7 +26,7 @@ class AttentionPooling(nn.Module):
         
         # Q attends to x (K and V)
         # attn_output shape: [batch, 1, embed_dim]
-        attn_output, _ = self.mha(q, x, x, key_padding_mask=self.key_padding_mask)
+        attn_output, _ = self.mha(q, x, x, key_padding_mask=key_padding_mask)
         
         # Squeeze to get [batch, embed_dim]
         return attn_output.squeeze(1)

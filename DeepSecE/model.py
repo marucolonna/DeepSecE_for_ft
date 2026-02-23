@@ -25,7 +25,7 @@ class EffectorTransformer(nn.Module):
         self.dim = hid_dim
         self.repr_layer = repr_layer
         self.num_layers = num_layers
-        self.mha = mha
+        self.mha_layer = mha #1 if mha pooling layer is added for tmbed output, 0 otherwise
 
         self.conv = nn.Conv1d(emb_dim, hid_dim, 1, 1, bias=False)
         self.layers = nn.ModuleList(
@@ -39,7 +39,7 @@ class EffectorTransformer(nn.Module):
             clf_input_dim = 448
             self.clf = nn.Linear(clf_input_dim, num_classes) #incfold - update input dimension for classifier after concatenating tmbed output
             
-            if self.mha:
+            if self.mha_layer:
                 num_heads = 8
                 self.mha = AttentionPooling(embed_dim=192, num_heads=num_heads) #incfold - add multihead attention layer for tmbed output
         else:
