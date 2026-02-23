@@ -37,7 +37,11 @@ def main(args):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if args.model == "effectortransformer":
         if args.with_tmbed == 1:
-            model = EffectorTransformer(1280, 33, hid_dim=args.hid_dim, num_layers=args.num_layers,
+            if args.mhap == 1:
+                model = EffectorTransformer(1280, 33, hid_dim=args.hid_dim, num_layers=args.num_layers,
+                                heads=args.num_heads, dropout_rate=args.dropout_rate, num_classes=2, tmbed_layer=True, mha=True)
+            else:
+                model = EffectorTransformer(1280, 33, hid_dim=args.hid_dim, num_layers=args.num_layers,
                                 heads=args.num_heads, dropout_rate=args.dropout_rate, num_classes=2, tmbed_layer=True)
         else:
             model = EffectorTransformer(1280, 33, hid_dim=args.hid_dim, num_layers=args.num_layers,
@@ -228,7 +232,9 @@ if __name__ == '__main__':
                         help="minimum value of learning rate. (default: 5e-6)")
     parser.add_argument('--with_tmbed', default=0, type=float,
                         help="enter 1 to add frozen tmbed layer for training - (default: 0)")                       
-
+    parser.add_argument('--mhap', default=0, type=float,
+                        help="enter 1 to do mhap pooling - (default: 0)")
+    
     # Training Info
     parser.add_argument('--max_epochs', default=30, type=int,
                         help="maximum num. of epochs. (default: 30")
