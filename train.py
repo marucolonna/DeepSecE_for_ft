@@ -232,7 +232,7 @@ if __name__ == '__main__':
                         help="minimum value of learning rate. (default: 5e-6)")
     parser.add_argument('--with_tmbed', default=0, type=float,
                         help="enter 1 to add frozen tmbed layer for training - (default: 0)")                       
-    parser.add_argument('--mhap', default=0, type=float,
+    parser.add_argument('--mha', default=0, type=float,
                         help="enter 1 to do mhap pooling - (default: 0)")
     
     # Training Info
