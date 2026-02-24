@@ -62,8 +62,9 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
             probs.append(prob.detach().cpu().numpy())
             preds.append(pred.detach().cpu().numpy())
             embeddings.append(embedding.detach().cpu())
-            protein_names = [label.split()[0] for label in labels])
-            protein_names.to_csv(os.path.join(outdir, 'protein_names_embeddings.csv'), index=False)
+            protein_names = [label.split()[0] for label in labels]
+            protein_names_df = pd.DataFrame({'name': protein_names})
+            protein_names_df.to_csv(os.path.join(outdir, 'protein_names_embeddings.csv'), index=False)
 
             for i, str in enumerate(strs):
                 name = labels[i].split()[0]
