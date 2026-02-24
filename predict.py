@@ -51,7 +51,7 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
         for labels, strs, toks in tqdm(loader):
             toks = toks.to(device)
             if save_attn:
-                out, attn = model(strs, toks)
+                out, embeddings, attn, mha_weights = model(strs, toks)
                 attn = attn.cpu().numpy()
             else:
                 out = model(strs, toks)
@@ -102,6 +102,10 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
         print(f"Saving inc protein attention in {os.path.join(outdir, 'attn.npz')}") #incfold
         np.savez(os.path.join(outdir, 'attn.npz'), **attn_dict)
 
+        torch.save(mha_weights, os.path.join(outdir, "mha_weights.pt"))
+    
+    torch.save(embeddings, os.path.join(outdir, "DeepsecE_tmbed_mha_embeddings.pt")) #incfold - save embeddings for FT
+
 
 def main(args):
 
@@ -119,7 +123,7 @@ def main(args):
     start_time = time.time()
 
     model = EffectorTransformer(1280, 33, hid_dim=256, num_layers=1, heads=4,
-                            dropout_rate=0.4, num_classes=2, return_attn=args.save_attn, tmbed_layer=True, mha=True) #incfold
+                            dropout_rate=0.4, num_classes=2, return_embedding=True, return_attn=args.save_attn, tmbed_layer=True, mha=True) #incfold
     model.to(device)
     
     print(f'Loading model from {args.model_location}')

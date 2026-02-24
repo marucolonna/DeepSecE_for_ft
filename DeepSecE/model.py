@@ -98,7 +98,7 @@ class EffectorTransformer(nn.Module):
             if self.mha:
                 #mask = torch.zeros(tmbed_out.shape[0], tmbed_out.shape[1], dtype=torch.bool, device=tmbed_out.device) #incfold - create mask for mha pooling (bs, seq_len)
                 mask = torch.arange(tmbed_out.shape[1], device=tmbed_out.device) >= torch.tensor(lengths, device=tmbed_out.device).unsqueeze(1) #incfold - create mask for mha pooling (bs, seq_len)
-                tmbed_out = self.mha(tmbed_out, key_padding_mask=mask) #incfold - apply multihead attention pooling to tmbed output (bs, tmbed_dim)
+                tmbed_out, mha_weights = self.mha(tmbed_out, key_padding_mask=mask) #incfold - apply multihead attention pooling to tmbed output (bs, tmbed_dim)
             
             #else:
             #    tmbed_out = torch.cat([tmbed_out[i, :len(strs[i]) + 1].max(0).unsqueeze(0)
@@ -109,9 +109,16 @@ class EffectorTransformer(nn.Module):
         logits = self.clf(out)
         
         if self.return_attn:
-            return logits, attn
+            if self.return_embedding:
+                return logits, out, attn, mha_weights
+            else:
+                return logits, attn, mha_weights
+        
         else:
-            return logits
+            if self.return_embedding:
+                return logits, out #incfold - return both logits and embeddings for FT
+            else:
+                return logits
 
 
 class ESM1bModel(nn.Module):

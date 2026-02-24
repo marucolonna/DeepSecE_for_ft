@@ -26,10 +26,10 @@ class AttentionPooling(nn.Module):
         
         # Q attends to x (K and V)
         # attn_output shape: [batch, 1, embed_dim]
-        attn_output, _ = self.mha(q, x, x, key_padding_mask=key_padding_mask)
+        attn_output, attn_weights = self.mha(q, x, x, key_padding_mask=key_padding_mask, need_weights=True)
         
         # Squeeze to get [batch, embed_dim]
-        return attn_output.squeeze(1)
+        return attn_output.squeeze(1), attn_weights
 
 if __name__ == "__main__":
     # Example usage
