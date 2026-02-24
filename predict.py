@@ -56,8 +56,7 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
             if save_attn:
                 out, embedding, attn, mha_weights = model(strs, toks) #embedding [1, 244]
                 attn = attn.cpu().numpy()
-                mha_weights = mha_weights.cpu().numpy()
-                print("mha shape", mha_weights.shape)
+                mha_weights = mha_weights.squeeze().cpu().numpy()
             else:
                 out = model(strs, toks)
             prob = torch.softmax(out, dim=1)
@@ -78,9 +77,8 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
                     if save_attn:
                         seq = str[:1020]
                         avg_attn = attn[i, :, :len(seq), :len(seq)].sum(0).mean(0)
-                        #avg_mha = mha_weights[i, :, :len(seq), :len(seq)].sum(0).mean(0)
                         attn_dict[name] = avg_attn
-                        #mha_dict[name] = avg_mha
+                        mha_dict[name] = mha_weights
                     record = SeqRecord(Seq(str), id=name, description=f'putative type {pred_label} secreted protein')
                     seq_records.append(record)
                 names.append(name)
