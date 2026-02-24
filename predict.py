@@ -119,7 +119,7 @@ def main(args):
     start_time = time.time()
 
     model = EffectorTransformer(1280, 33, hid_dim=256, num_layers=1, heads=4,
-                            dropout_rate=0.4, num_classes=2, return_attn=args.save_attn, tmbed_layer=True) #incfold
+                            dropout_rate=0.4, num_classes=2, return_attn=args.save_attn, tmbed_layer=True, mha=True) #incfold
     model.to(device)
     
     print(f'Loading model from {args.model_location}')
