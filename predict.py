@@ -49,6 +49,7 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
 
     with torch.no_grad():
         embeddings = []
+        protein_names = []
         for labels, strs, toks in tqdm(loader):
             toks = toks.to(device)
             if save_attn:
@@ -62,9 +63,10 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
             probs.append(prob.detach().cpu().numpy())
             preds.append(pred.detach().cpu().numpy())
             embeddings.append(embedding.detach().cpu())
-            protein_names = [label.split()[0] for label in labels]
-            protein_names_df = pd.DataFrame({'name': protein_names})
-            protein_names_df.to_csv(os.path.join(outdir, 'protein_names_embeddings.csv'), index=False)
+            
+            protein_name = [label.split()[0] for label in labels]
+            protein_names.append(protein_name)
+            
 
             for i, str in enumerate(strs):
                 name = labels[i].split()[0]
@@ -79,10 +81,11 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
                 names.append(name)
                 lengths.append(len(str))
 
-        embeddings = torch.cat(embeddings, dim=0)  # [N, 244] for umap
-        
-    torch.save(embeddings, os.path.join(outdir, "DeepsecE_tmbed_mha_embeddings.pt")) #incfold - save embeddings for Ft
-    
+        embeddings = torch.cat(embeddings, dim=0)  # [N, 244] for umap incfold
+        torch.save(embeddings, os.path.join(outdir, "DeepsecE_tmbed_mha_embeddings.pt")) #incfold - save embeddings for Ft
+        protein_names_df = pd.DataFrame({'name': protein_names})
+        protein_names_df.to_csv(os.path.join(outdir, 'protein_names_embeddings.csv'), index=False)
+
     probs = np.concatenate(probs)
     preds = np.concatenate(preds)
     print(f"{probs.shape=}")  # all sequences !
