@@ -48,10 +48,11 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
         attn_dict = {}
 
     with torch.no_grad():
+        embeddings = []
         for labels, strs, toks in tqdm(loader):
             toks = toks.to(device)
             if save_attn:
-                out, embedding, attn, mha_weights = model(strs, toks)
+                out, embedding, attn, mha_weights = model(strs, toks) #embedding [1, 244]
                 attn = attn.cpu().numpy()
             else:
                 out = model(strs, toks)
@@ -60,6 +61,8 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
 
             probs.append(prob.detach().cpu().numpy())
             preds.append(pred.detach().cpu().numpy())
+            embeddings.append(embedding.detach().cpu())
+            embeddings = torch.cat(embeddings, dim=0)  # [N, 244] for umap
 
             for i, str in enumerate(strs):
                 name = labels[i].split()[0]
@@ -74,7 +77,6 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
                 names.append(name)
                 lengths.append(len(str))
 
-    embeddings = torch.cat([embedding[i, :len(strs[i]) + 1].unsqueeze(0) for i in range(len(strs))], dim=0) #incfold - get embeddings for all sequences (bs, tmbed_dim)
     probs = np.concatenate(probs)
     preds = np.concatenate(preds)
     print(f"{probs.shape=}")  # all sequences !
