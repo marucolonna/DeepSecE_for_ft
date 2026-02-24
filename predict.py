@@ -67,7 +67,7 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
             preds.append(pred.detach().cpu().numpy())
             embeddings.append(embedding.detach().cpu())
             
-            protein_name = labels
+            protein_name = labels[0].split()[0] #only working for batch size=1
             print(f"protein_name={protein_name}")
             protein_names.append(protein_name)
             
