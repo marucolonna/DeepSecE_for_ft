@@ -62,8 +62,6 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
             probs.append(prob.detach().cpu().numpy())
             preds.append(pred.detach().cpu().numpy())
             embeddings.append(embedding.detach().cpu())
-        
-        embeddings = torch.cat(embeddings, dim=0)  # [N, 244] for umap
 
             for i, str in enumerate(strs):
                 name = labels[i].split()[0]
@@ -78,6 +76,8 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
                 names.append(name)
                 lengths.append(len(str))
 
+        embeddings = torch.cat(embeddings, dim=0)  # [N, 244] for umap
+        
     probs = np.concatenate(probs)
     preds = np.concatenate(preds)
     print(f"{probs.shape=}")  # all sequences !
