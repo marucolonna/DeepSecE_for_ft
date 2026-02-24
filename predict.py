@@ -57,6 +57,7 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
                 out, embedding, attn, mha_weights = model(strs, toks) #embedding [1, 244]
                 attn = attn.cpu().numpy()
                 mha_weights = mha_weights.squeeze().cpu().numpy()
+                print(f"mha_weights.shape={mha_weights.shape}")
             else:
                 out = model(strs, toks)
             prob = torch.softmax(out, dim=1)
@@ -69,6 +70,9 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
             protein_name = [label.split()[0] for label in labels]
             protein_names.append(protein_name)
             
+            if save_attn:
+                mha_dict[protein_name] = mha_weights
+            
 
             for i, str in enumerate(strs):
                 name = labels[i].split()[0]
@@ -78,11 +82,12 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
                         seq = str[:1020]
                         avg_attn = attn[i, :, :len(seq), :len(seq)].sum(0).mean(0)
                         attn_dict[name] = avg_attn
-                        mha_dict[name] = mha_weights
+                        
                     record = SeqRecord(Seq(str), id=name, description=f'putative type {pred_label} secreted protein')
                     seq_records.append(record)
                 names.append(name)
                 lengths.append(len(str))
+            print(f"mha_weights dict={mha_dict.keys()}")
 
         embeddings = torch.cat(embeddings, dim=0)  # [N, 244] for umap incfold
         torch.save(embeddings, os.path.join(outdir, "DeepsecE_tmbed_mha_embeddings.pt")) #incfold - save embeddings for Ft
@@ -116,6 +121,7 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
     if save_attn:
         print(f"Saving inc protein attention in {os.path.join(outdir, 'attn.npz')}") #incfold
         np.savez(os.path.join(outdir, 'attn.npz'), **attn_dict)
+        print(f"mha dict keys: {list(mha_dict.keys())}")
         np.savez(os.path.join(outdir, 'mha.npz'), **mha_dict)
 
 def main(args):
