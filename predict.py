@@ -51,7 +51,7 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
         for labels, strs, toks in tqdm(loader):
             toks = toks.to(device)
             if save_attn:
-                out, embeddings, attn, mha_weights = model(strs, toks)
+                out, embedding, attn, mha_weights = model(strs, toks)
                 attn = attn.cpu().numpy()
             else:
                 out = model(strs, toks)
@@ -74,6 +74,7 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
                 names.append(name)
                 lengths.append(len(str))
 
+    embeddings = torch.cat([embedding[i, :len(strs[i]) + 1].unsqueeze(0) for i in range(len(strs))], dim=0) #incfold - get embeddings for all sequences (bs, tmbed_dim)
     probs = np.concatenate(probs)
     preds = np.concatenate(preds)
     print(f"{probs.shape=}")  # all sequences !
