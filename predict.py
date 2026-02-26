@@ -121,8 +121,9 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
 
     if save_attn:
         print(f"Saving inc protein attention in {os.path.join(outdir, 'attn.npz')}") #incfold
-        np.savez(os.path.join(outdir, 'attn.npz'), **attn_dict)
+        print(f"attn dict keys: {list(attn_dict.keys())}")
         print(f"mha dict keys: {list(mha_dict.keys())}")
+        np.savez(os.path.join(outdir, 'attn.npz'), **attn_dict)
         np.savez(os.path.join(outdir, 'mha.npz'), **mha_dict)
 
 def main(args):
