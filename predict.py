@@ -55,9 +55,10 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
             toks = toks.to(device)
             if save_attn:
                 out, embedding, attn, mha_weights = model(strs, toks) #embedding [1, 244]
+                print(f"attn shape (model output): {attn.shape}, mha_weights shape: {mha_weights.shape}")
                 attn = attn.cpu().numpy()
                 mha_weights = mha_weights.squeeze().cpu().numpy()
-                print(f"mha_weights.shape={mha_weights.shape}")
+            
             else:
                 out = model(strs, toks)
             prob = torch.softmax(out, dim=1)
@@ -68,7 +69,7 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
             embeddings.append(embedding.detach().cpu())
             
             protein_name = labels[0].split()[0] #only working for batch size=1
-            print(f"protein_name={protein_name}")
+        
             protein_names.append(protein_name)
             
             if save_attn:
