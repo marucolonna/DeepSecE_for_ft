@@ -89,7 +89,7 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
                     seq_records.append(record)
                 names.append(name)
                 lengths.append(len(str))
-            print(f"mha_weights dict={mha_dict.keys()}")
+    
 
         embeddings = torch.cat(embeddings, dim=0)  # [N, 244] for umap incfold
         torch.save(embeddings, os.path.join(outdir, "DeepsecE_tmbed_mha_embeddings.pt")) #incfold - save embeddings for Ft
@@ -189,7 +189,7 @@ if __name__ == '__main__':
                         help='input ordered protein sequences.')
     parser.add_argument('--model_location', required=True, type=str,
                         help='path to the model weights.')
-    parser.add_argument('--is_inc_labels', nargs='+', default=['Inc_', 'nega'],
+    parser.add_argument('--is_inc_labels', nargs='+', default=['Inc-protein', 'Negative'],
                         help='types of secreted proteins requiring prediction. (default: Inc_, nega)') #incfold
     parser.add_argument('--out_dir', default='./', type=str,
                         help='output directory of prediction results.')
