@@ -16,7 +16,9 @@ offset = .1
 start_time = time.time()
 
 data = np.load(os.path.join(dirname, 'attn.npz'))
-fasta_dict = SeqIO.to_dict(SeqIO.parse(os.path.join(dirname, 'secreted-proteins.fasta'), 'fasta'))
+
+fasta_dict = SeqIO.to_dict(SeqIO.parse(os.path.join(dirname, 'predicted_incs.fasta'), 'fasta'))
+print(fasta_dict.keys())
 os.makedirs(os.path.join(dirname, 'attn'), exist_ok=True)
 
 for key, value in data.items():
