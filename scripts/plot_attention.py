@@ -17,8 +17,8 @@ start_time = time.time()
 
 data = np.load(os.path.join(dirname, 'attn.npz'))
 
-fasta_dict = SeqIO.to_dict(SeqIO.parse(os.path.join(dirname, 'predicted_incs.fasta'), 'fasta'))
-print(fasta_dict.keys())
+fasta_dict = SeqIO.to_dict(SeqIO.parse('/home/mcolonna/source/IncFold/outputs/singleline_coding_sequences_CTDUW-3CX.fasta', 'fasta'))
+
 os.makedirs(os.path.join(dirname, 'attn'), exist_ok=True)
 
 for key, value in data.items():
