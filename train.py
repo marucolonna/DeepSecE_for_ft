@@ -165,7 +165,7 @@ def main(args):
         for key, value in valid_metrics.items():
             writer.add_scalar('Valid/' + key, value, epoch+1)
 
-        epochs_checkpoint = [10, 20, args.max_epochs//4, args.max_epochs//2, 3*args.max_epochs//4, args.max_epochs]
+        epochs_checkpoint = [10, args.max_epochs//4, args.max_epochs//2, 3*args.max_epochs//4, args.max_epochs]
 
         if epoch + 1 in epochs_checkpoint:
             torch.save(model.state_dict(), os.path.join(log_dir,f'{epoch+1}_checkpoint.pt')) #incfold - saving checkpoint
