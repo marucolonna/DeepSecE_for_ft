@@ -19,13 +19,12 @@ class EffectorTransformer(nn.Module):
         super().__init__()
         self.pretrained_model, alphabet = esm.pretrained.esm1b_t33_650M_UR50S()
         self.tmbed_layer = tmbed_layer
-        self.tmbed = Predictor()
         self.protT5_encoder = T5Encoder()
         self.padding_idx = alphabet.padding_idx
         self.dim = hid_dim
         self.repr_layer = repr_layer
         self.num_layers = num_layers
-        self.mha_layer = mha #1 if mha pooling layer is added for tmbed output, 0 otherwise
+        self.mha_layer = mha
 
         self.conv = nn.Conv1d(emb_dim, hid_dim, 1, 1, bias=False)
         self.layers = nn.ModuleList(
@@ -38,7 +37,8 @@ class EffectorTransformer(nn.Module):
         if self.tmbed_layer:
             clf_input_dim = 448
             self.clf = nn.Linear(clf_input_dim, num_classes) #incfold - update input dimension for classifier after concatenating tmbed output
-            
+            self.tmbed = Predictor()
+
             if self.mha_layer:
                 num_heads = 8
                 self.mha = AttentionPooling(embed_dim=192, num_heads=num_heads) #incfold - add multihead attention layer for tmbed output
@@ -95,7 +95,7 @@ class EffectorTransformer(nn.Module):
 
             tmbed_out = rearrange(tmbed_out, 'b d n -> b n d')
             
-            if self.mha:
+            if self.mha_layer:
                 #mask = torch.zeros(tmbed_out.shape[0], tmbed_out.shape[1], dtype=torch.bool, device=tmbed_out.device) #incfold - create mask for mha pooling (bs, seq_len)
                 mask = torch.arange(tmbed_out.shape[1], device=tmbed_out.device) >= torch.tensor(lengths, device=tmbed_out.device).unsqueeze(1) #incfold - create mask for mha pooling (bs, seq_len)
                 tmbed_out, mha_weights = self.mha(tmbed_out, key_padding_mask=mask) #incfold - apply multihead attention pooling to tmbed output (bs, tmbed_dim)
@@ -104,7 +104,7 @@ class EffectorTransformer(nn.Module):
             #    tmbed_out = torch.cat([tmbed_out[i, :len(strs[i]) + 1].max(0).unsqueeze(0)
             #            for i in range(batch)], dim=0) #incfold - max pooling for tmbed output (bs, tmbed_dim)
 
-        out = torch.cat([out, tmbed_out], dim=1) #incfold - concatenate along feature dimension (bs, 1280+tmbed_dim)
+            out = torch.cat([out, tmbed_out], dim=1) #incfold - concatenate along feature dimension (bs, 1280+tmbed_dim)
 
         logits = self.clf(out)
         

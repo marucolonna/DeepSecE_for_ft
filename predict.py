@@ -29,7 +29,7 @@ def set_seed(seed):
     torch.backends.cudnn.deterministic = True
 
 
-def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=False):
+def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=False, save_embedding=False):
     predicted_labels = ['Inc-protein', 'Negative'] #incfold
     print(f'Loading FASTA Dataset from {fasta}')
 
@@ -54,19 +54,28 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
         for labels, strs, toks in tqdm(loader):
             toks = toks.to(device)
             if save_attn:
-                out, embedding, attn, mha_weights = model(strs, toks) #embedding [1, 244]
-                print(f"attn shape (model output): {attn.shape}, mha_weights shape: {mha_weights.shape}")
-                attn = attn.cpu().numpy()
-                mha_weights = mha_weights.squeeze().cpu().numpy()
-            
+                if save_embedding:
+                    out, embedding, attn, mha_weights = model(strs, toks) #embedding [1, 244]
+                    print(f"attn shape (model output): {attn.shape}, mha_weights shape: {mha_weights.shape}")
+                    attn = attn.cpu().numpy()
+                    mha_weights = mha_weights.squeeze().cpu().numpy()
+                    
+                else:
+                    out, attn, mha_weights = model(strs, toks)
+                    print(f"attn shape (model output): {attn.shape}, mha_weights shape: {mha_weights.shape}")
+                    attn = attn.cpu().numpy()
+                    mha_weights = mha_weights.squeeze().cpu().numpy()
+
             else:
-                out = model(strs, toks)
+                if save_embedding:
+                    out, embedding = model(strs, toks)
+                else:   
+                    out = model(strs, toks)
+            
             prob = torch.softmax(out, dim=1)
             _, pred = torch.max(prob, 1)
-
             probs.append(prob.detach().cpu().numpy())
             preds.append(pred.detach().cpu().numpy())
-            embeddings.append(embedding.detach().cpu())
             
             protein_name = labels[0].split()[0] #only working for batch size=1
         
@@ -74,7 +83,6 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
             
             if save_attn:
                 mha_dict[protein_name] = mha_weights
-            
 
             for i, str in enumerate(strs):
                 name = labels[i].split()[0]
@@ -90,11 +98,13 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
                 names.append(name)
                 lengths.append(len(str))
     
-
-        embeddings = torch.cat(embeddings, dim=0)  # [N, 244] for umap incfold
-        torch.save(embeddings, os.path.join(outdir, "DeepsecE_tmbed_mha_embeddings.pt")) #incfold - save embeddings for Ft
         protein_names_df = pd.DataFrame({'name': protein_names})
         protein_names_df.to_csv(os.path.join(outdir, 'protein_names_embeddings.csv'), index=False)
+
+        if save_embedding:
+            embeddings.append(embedding.detach().cpu())
+            embeddings = torch.cat(embeddings, dim=0)  # [N, 244] for umap incfold
+            torch.save(embeddings, os.path.join(outdir, "DeepsecE_tmbed_mha_embeddings.pt")) #incfold - save embeddings for Ft
 
     probs = np.concatenate(probs)
     preds = np.concatenate(preds)
@@ -143,34 +153,38 @@ def main(args):
     start_time = time.time()
 
     model = EffectorTransformer(1280, 33, hid_dim=256, num_layers=1, heads=4,
-                            dropout_rate=0.4, num_classes=2, return_embedding=True, return_attn=args.save_attn, tmbed_layer=True, mha=True) #incfold
+                            dropout_rate=0.4, num_classes=2, return_embedding=args.save_embedding, return_attn=args.save_attn, tmbed_layer=True, mha=True) #incfold #removed tmbed = true and mha=true to do ft5 pred
     model.to(device)
     
     print(f'Loading model from {args.model_location}')
     if args.no_cuda:
         model_weights = torch.load(args.model_location, map_location="cpu")
 
-        tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
-        tmbed_weights = torch.load(tmbed_weights_file, map_location="cpu")
-        tmbed_weights = tmbed_weights['model']
-        tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
+        if model.tmbed_layer:
+            tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
+            tmbed_weights = torch.load(tmbed_weights_file, map_location="cpu")
+            tmbed_weights = tmbed_weights['model']
+            tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
 
-        model_weights = {**model_weights, **tmbed_weights}
-        model.load_state_dict(model_weights, map_location="cpu")
+            model_weights = {**model_weights, **tmbed_weights}
+        
+        model.load_state_dict(model_weights)
      
     else:
         model_weights = torch.load(args.model_location)
         
-        tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
-        tmbed_weights = torch.load(tmbed_weights_file)
-        tmbed_weights = tmbed_weights['model']
-        tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
+        if model.tmbed_layer:
+            tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
+            tmbed_weights = torch.load(tmbed_weights_file)
+            tmbed_weights = tmbed_weights['model']
+            tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
 
-        model_weights = {**model_weights, **tmbed_weights}
+            model_weights = {**model_weights, **tmbed_weights}
+
         model.load_state_dict(model_weights)
 
     predict(model, args.fasta_path, args.batch_size, device,
-            args.out_dir, args.is_inc_labels, args.save_attn)
+            args.out_dir, args.is_inc_labels, args.save_attn, args.save_embedding)
 
     end_time = time.time()
     secs = end_time - start_time
@@ -197,6 +211,8 @@ if __name__ == '__main__':
                         help='save the sequence attention of inc proteins.') #incfold
     parser.add_argument('--no_cuda', action='store_true',
                         help='add when CUDA is not available.')
+    parser.add_argument('--save_embedding', action='store_true',
+                        help='save the sequence embedding of inc proteins for FT.') #incfold
 
     args = parser.parse_args()
 
