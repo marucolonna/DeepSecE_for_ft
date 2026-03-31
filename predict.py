@@ -56,13 +56,11 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
             if save_attn:
                 if save_embedding:
                     out, embedding, attn, mha_weights = model(strs, toks) #embedding [1, 244]
-                    print(f"attn shape (model output): {attn.shape}, mha_weights shape: {mha_weights.shape}")
                     attn = attn.cpu().numpy()
                     mha_weights = mha_weights.squeeze().cpu().numpy()
                     
                 else:
                     out, attn, mha_weights = model(strs, toks)
-                    print(f"attn shape (model output): {attn.shape}, mha_weights shape: {mha_weights.shape}")
                     attn = attn.cpu().numpy()
                     mha_weights = mha_weights.squeeze().cpu().numpy()
 
@@ -125,17 +123,11 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
     print(f"Writing prediction result in {os.path.join(outdir, 'predictions.csv')}")
     result.to_csv(os.path.join(outdir, 'predictions.csv'), index=False)
 
-    effector = result[result['is_inc'].isin(pos_labels)] #incfold
-    print(f"{effector.shape=}")
-    effector.to_csv(os.path.join(outdir, 'results.csv'), index=False)
-
     print(f"Writing putative inc proteins in {os.path.join(outdir, 'inc_proteins.fasta')}") #incfold
     SeqIO.write(seq_records, os.path.join(outdir, 'inc_proteins.fasta'), 'fasta') #incfold
 
     if save_attn:
         print(f"Saving inc protein attention in {os.path.join(outdir, 'attn.npz')}") #incfold
-        print(f"attn dict keys: {list(attn_dict.keys())}")
-        print(f"mha dict keys: {list(mha_dict.keys())}")
         np.savez(os.path.join(outdir, 'attn.npz'), **attn_dict)
         np.savez(os.path.join(outdir, 'mha.npz'), **mha_dict)
 
