@@ -104,8 +104,9 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
         protein_names_df = pd.DataFrame({'name': protein_names})
         protein_names_df.to_csv(os.path.join(outdir, 'protein_names_embeddings.csv'), index=False)
 
-        embeddings = torch.cat(embeddings, dim=0)  # [N, 244] for umap incfold
-        torch.save(embeddings, os.path.join(outdir, "seq_embeddings.pt")) #incfold - save embeddings for Ft
+        if save_embedding:
+            embeddings = torch.cat(embeddings, dim=0)  # [N, 244] for umap incfold
+            torch.save(embeddings, os.path.join(outdir, "seq_embeddings.pt")) #incfold - save embeddings for Ft
 
     probs = np.concatenate(probs)
     preds = np.concatenate(preds)
