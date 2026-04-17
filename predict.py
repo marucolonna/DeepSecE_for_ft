@@ -94,7 +94,7 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
                         avg_attn = attn[i, :, :len(seq), :len(seq)].sum(0).mean(0)
                         attn_dict[name] = avg_attn
                         
-                    record = SeqRecord(Seq(str), id=name, description=f'putative type {pred_label} secreted protein')
+                    record = SeqRecord(Seq(str), id=name, description=f'predicted class: {pred_label} ')
                     seq_records.append(record)
                 names.append(name)
                 lengths.append(len(str))
