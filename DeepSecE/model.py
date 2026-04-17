@@ -14,7 +14,7 @@ from DeepSecE.attention_pooling import AttentionPooling
 class EffectorTransformer(nn.Module):
 
     def __init__(self, emb_dim, repr_layer, num_layers, heads,
-                 hid_dim=256, dropout_rate=0.4, num_classes=2, attn_dropout=0.05, return_embedding=False, return_attn=False, tmbed_layer=False, mha=False):
+                 hid_dim=256, dropout_rate=0.4, num_classes=3, attn_dropout=0.05, return_embedding=False, return_attn=False, tmbed_layer=False, mha=False):
 
         super().__init__()
         self.pretrained_model, alphabet = esm.pretrained.esm1b_t33_650M_UR50S()
