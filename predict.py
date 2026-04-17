@@ -112,19 +112,20 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
 
     probs_inc= probs[:, 0] #incfold
     probs_nega= probs[:, 1] #incfold
+    probs_sec= probs[:, 2] #incfold
 
-    is_inc = list(map(lambda x: predicted_labels[x], preds)) #incfold
+    pred_class = list(map(lambda x: predicted_labels[x], preds)) #incfold
     scores = [prob[idx] for prob, idx in zip(probs, preds)]
 
-    result = pd.DataFrame({'name': names, 'is_inc': is_inc, 'score': scores, 'inc.prob': probs_inc, 'nega.prob': probs_nega, 'length': lengths}) #incfold
+    result = pd.DataFrame({'name': names, 'pred_class': pred_class, 'score': scores, 'inc.prob': probs_inc, 'nega.prob': probs_nega, 'sec.prob': probs_sec, 'length': lengths}) #incfold
     result = result.round(4)
     print(f"{result.shape=}")  # all sequences !
 
     print(f"Writing prediction result in {os.path.join(outdir, 'predictions.csv')}")
     result.to_csv(os.path.join(outdir, 'predictions.csv'), index=False)
 
-    print(f"Writing putative inc proteins in {os.path.join(outdir, 'inc_proteins.fasta')}") #incfold
-    SeqIO.write(seq_records, os.path.join(outdir, 'inc_proteins.fasta'), 'fasta') #incfold
+    print(f"Writing putative inc proteins in {os.path.join(outdir, 'effectors.fasta')}") #incfold
+    SeqIO.write(seq_records, os.path.join(outdir, 'effectors.fasta'), 'fasta') #incfold
 
     if save_attn:
         print(f"Saving inc protein attention in {os.path.join(outdir, 'attn.npz')}") #incfold
@@ -147,7 +148,7 @@ def main(args):
     start_time = time.time()
 
     model = EffectorTransformer(1280, 33, hid_dim=256, num_layers=1, heads=4,
-                            dropout_rate=0.4, num_classes=2, return_embedding=args.save_embedding, return_attn=args.save_attn, tmbed_layer=True, mha=True) #incfold #removed tmbed = true and mha=true to do ft5 pred
+                            dropout_rate=0.4, num_classes=3, return_embedding=args.save_embedding, return_attn=args.save_attn, tmbed_layer=True, mha=True) #incfold #removed tmbed = true and mha=true to do ft5 pred
     model.to(device)
     
     print(f'Loading model from {args.model_location}')
@@ -178,7 +179,7 @@ def main(args):
         model.load_state_dict(model_weights)
 
     predict(model, args.fasta_path, args.batch_size, device,
-            args.out_dir, args.is_inc_labels, args.save_attn, args.save_embedding)
+            args.out_dir, args.labels, args.save_attn, args.save_embedding)
 
     end_time = time.time()
     secs = end_time - start_time
@@ -197,7 +198,7 @@ if __name__ == '__main__':
                         help='input ordered protein sequences.')
     parser.add_argument('--model_location', required=True, type=str,
                         help='path to the model weights.')
-    parser.add_argument('--is_inc_labels', nargs='+', default=['Inc-protein', 'Negative'],
+    parser.add_argument('--labels', nargs='+', default=['Inc-protein', 'Secreted-effector', 'Negative'],
                         help='types of secreted proteins requiring prediction. (default: Inc_, nega)') #incfold
     parser.add_argument('--out_dir', default='./', type=str,
                         help='output directory of prediction results.')
