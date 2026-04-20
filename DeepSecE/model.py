@@ -124,7 +124,7 @@ class EffectorTransformer(nn.Module):
 class ESM1bModel(nn.Module):
     def __init__(self, emb_dim, repr_layer,
                     unfreeze_last=True, hid_dim=256,
-                    dropout_rate=0.4, num_classes=6,
+                    dropout_rate=0.4, num_classes=3,
                     return_embedding=False):
 
         super().__init__()
