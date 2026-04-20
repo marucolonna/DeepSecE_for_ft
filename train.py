@@ -190,7 +190,7 @@ def main(args):
     valid_cm = confusion_matrix(valid_truth, valid_pred)
     #test_cm = confusion_matrix(test_truth, test_pred) #incfold
 
-    labels = ['Non-inc', 'inc'] #incfold
+    labels = ['Negative', 'Inc', 'Secreted effector'] #incfold
 
     writer.add_figure('Valid/conf_matrix', viz_conf_matrix(valid_cm, labels))
     #writer.add_figure('Test/conf_matrix', viz_conf_matrix(test_cm, labels)) #incfold
