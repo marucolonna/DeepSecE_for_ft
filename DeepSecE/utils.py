@@ -5,7 +5,7 @@ import seaborn as sns
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, roc_auc_score, average_precision_score
 
 
-def one_hot_encoding(y, num_class=6):
+def one_hot_encoding(y, num_class=3):
     return np.eye(num_class)[y]
 
 
@@ -27,7 +27,7 @@ def metrics(y, pred, score):
 
 
 def label2index(label):
-    label_dict = {'Inc_': 0, 'nega': 1} #incfold
+    label_dict = {'nega': 0, 'Inc_': 1, 'Secr': 2} #incfold
     index = label_dict[label]
     return index
 
