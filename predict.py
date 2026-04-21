@@ -110,8 +110,8 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
     preds = np.concatenate(preds)
     print(f"{probs.shape=}")  # all sequences !
 
-    probs_inc= probs[:, 0] #incfold
-    probs_nega= probs[:, 1] #incfold
+    probs_nega= probs[:, 0] #incfold
+    probs_inc= probs[:, 1] #incfold
     probs_sec= probs[:, 2] #incfold
 
     pred_class = list(map(lambda x: predicted_labels[x], preds)) #incfold
