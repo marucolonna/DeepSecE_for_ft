@@ -48,7 +48,7 @@ def main(args):
                                 heads=args.num_heads, dropout_rate=args.dropout_rate, num_classes=3) #incfold
             
     elif args.model == "esm1bmodel":
-        model = ESM1bModel(1280, 33, unfreeze_last=True, hid_dim=args.hid_dim, dropout_rate=args.dropout_rate, num_classes=6)
+        model = ESM1bModel(1280, 33, unfreeze_last=True, hid_dim=args.hid_dim, dropout_rate=args.dropout_rate, num_classes=3)
     else:
         raise ValueError('Invalid model type!')
     
