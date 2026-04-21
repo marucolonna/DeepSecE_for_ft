@@ -30,7 +30,7 @@ def set_seed(seed):
 
 
 def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=False, save_embedding=False):
-    predicted_labels = ['Inc-protein', 'Negative', 'Secreted effector'] #incfold
+    predicted_labels = ['Negative', 'Inc-protein', 'Secreted effector'] #incfold
     print(f'Loading FASTA Dataset from {fasta}')
 
     dataset = FastaBatchedDataset.from_file(fasta)
@@ -198,7 +198,7 @@ if __name__ == '__main__':
                         help='input ordered protein sequences.')
     parser.add_argument('--model_location', required=True, type=str,
                         help='path to the model weights.')
-    parser.add_argument('--labels', nargs='+', default=['Inc-protein', 'Negative', 'Secreted-effector'],
+    parser.add_argument('--labels', nargs='+', default=['Negative', 'Inc-protein', 'Secreted-effector'],
                         help='types of secreted proteins requiring prediction. (default: Inc_, nega, secreted)') #incfold
     parser.add_argument('--out_dir', default='./', type=str,
                         help='output directory of prediction results.')
