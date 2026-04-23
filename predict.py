@@ -72,6 +72,11 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
             
             prob = torch.softmax(out, dim=1)
             _, pred = torch.max(prob, 1)
+
+            pred = torch.zeros(prob.shape[0], dtype=torch.long)  # Start with all Negative (0)
+            pred[prob[:, 1] >= 0.8] = 1  #Inc-protein (1) if prob >= 0.8
+            pred[prob[:, 2] >= 0.8] = 2 #Secreted effector (2) if prob >= 0.8
+           
             probs.append(prob.detach().cpu().numpy())
             preds.append(pred.detach().cpu().numpy())
             
