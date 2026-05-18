@@ -85,7 +85,7 @@ def main(args):
     alphabet = Alphabet.from_architecture("roberta_large")
     train_dataset = TXSESequenceDataSet(fasta_path=os.path.join(args.data_dir, 'labeled_train_set.fasta'),
                                 transform=label2index, mode='train', kfold=args.kfold, fold_num=args.fold_num, seed=args.seed)
-    valid_dataset = TXSESequenceDataSet(fasta_path=os.path.join(args.data_dir, 'labeled_test_set.fasta'),
+    valid_dataset = TXSESequenceDataSet(fasta_path=os.path.join(args.data_dir, 'labeled_train_set.fasta'),
                                 transform=label2index, mode='valid', kfold=args.kfold, fold_num=args.fold_num, seed=args.seed)
     
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size,
