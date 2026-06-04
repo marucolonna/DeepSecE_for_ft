@@ -161,7 +161,7 @@ def main(args):
         model_weights = torch.load(args.model_location, map_location="cpu")
 
         if model.tmbed_layer:
-            tmbed_weights_file = Path('~/source/IncFold/outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
+            tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
             tmbed_weights = torch.load(tmbed_weights_file, map_location="cpu")
             tmbed_weights = tmbed_weights['model']
             tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
