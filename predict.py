@@ -203,7 +203,7 @@ if __name__ == '__main__':
                         help='input ordered protein sequences.')
     parser.add_argument('--model_location', required=True, type=str,
                         help='path to the model weights.')
-    parser.add_argument('--labels', nargs='+', default=['Negative', 'Inc-protein', 'Secreted-effector'],
+    parser.add_argument('--labels', nargs='+', default=['Negative', 'Inc-protein', 'Secreted effector'],
                         help='types of secreted proteins requiring prediction. (default: Inc_, nega, secreted)') #incfold
     parser.add_argument('--out_dir', default='./', type=str,
                         help='output directory of prediction results.')
