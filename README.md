@@ -1,26 +1,20 @@
 # DeepSecE
 
-Implementation of Secretion-specific Transformer model used in secretion protein prediction in Gram-negative bacteria. DeepSecE achieves state-of-the-art performance in multi-class prediction leveraging the power of pre-trained protein language model [ESM-1b](https://github.com/facebookresearch/esm). An additional transformer layer enhances the understanding of secreted patterns. It also provides a rapid pipeline to identify type I-IV and VI secretion systems with corresponding substrate proteins.
+Fine-tuned model of combined approach detection of for inclusion membrane proteins and host-translocated type 3 effectors of Chlamydiae. We combine 2 pretrained models:
+- DeepSecE: Secretion-specific Transformer model used in secretion protein prediction in Gram-negative bacteria (https://doi.org/10.34133/research.0258)
+- TMbed: CCN-based model for per-residue prediction of transmembrane segments and topology (https://doi.org/10.1186/s12859-022-04873-x)
 
-![](summary.png)
+The combined model has been fine-tuned on a curated data base of chlamydia T3 effectors, resulting in an accurate classifier of chlamydial proteins in 3 classes:
+
+- Inclusion membrane proteins (Incs) - T3 effectors inserted in the inclusion membrane
+- Host-translocated effectors - T3 effectors located in the host cell
+- Negatives - Non-T3 effectors
 
 ## Performance Comparison
 
-We choose various model architecture with different pre-trained models and training strategies, and evalute their model capacity on cross-validation and independent testing. Performance metrics are reported in the table.
-
-| Pre-trained   Model |           Strategy           |       ACC       |                |       F1       |                |      AUPRC      |                |
-| :-----------------: | :---------------------------: | :-------------: | :-------------: | :-------------: | :-------------: | :-------------: | :-------------: |
-|                    |                              |      Valid      |      Test      |      Valid      |      Test      |      Valid      |      Test      |
-|          /          |           PSSM+CNN           |      0.799      |      0.822      |      0.712      |      0.724      |      0.752      |      0.774      |
-|      TAPEBert      |        Linear probing        |      0.816      |      0.838      |      0.764      |      0.770      |      0.802      |      0.822      |
-|       ESM-1b       |        XGBoost        |      0.869      |      0.887      |      0.809      |      0.816      |      0.865      |      0.872      |
-|       ESM-1b       |        Linear probing        |      0.876      |      0.870      |      0.841      |      0.810      |      0.880      |      0.871      |
-|       ESM-1b       |          Fine-tuning          |      0.878      |      0.850      |      0.846      |      0.808      |      0.887      | 0.883 |
-|       ESM-1b       | Secretion-specific transformer | **0.883** | **0.898** | **0.848** | **0.849** | **0.892** |      **0.885**      |
-
 ## Set up
 
-### Requirements
+### Requirements (DeepSecE and TMbed requirements)
 
 - python==3.9.7
 - torch==1.10.2
@@ -35,116 +29,110 @@ We choose various model architecture with different pre-trained models and train
 - tensorboardX==2.0
 - umap-learn==0.5.3
 - warmup-scheduler==0.3.2
-
-While we have not tested with other versions, any reasonably recent versions of these requirements should work.
+- h5py >= "3.2.1"
+- sentencepiece >= "0.1.96"
+- transformers >= "4.11.3"
+- typer >= "0.4.1"
 
 ### Installation
 
-As a prerequisite, you must have PyTorch installed. It is recommended to create a new virtual environment for installation. For model training and prediction from seperate protein sequence(s), You can use this one-liner for installation.
+To install clone this repository and run directly:
 
 ```shell
-pip install DeepSecE==0.1.0 # OR
-pip install git+https://github.com/zhangyumeng1sjtu/DeepSecE.git
+git clone ""
+
 ```
 
-If you want to plot the sequence attention, you should install package `logomarker` first.
+If you want to plot the sequence attention, you should install package `logomarker`
 
 ```shell
 pip install logomaker
 ```
 
-If you want to predict secretion systems and substrate proteins, you should install `macsyfinder` and `hmmer` first. Meanwhile, you need to download the TXSS profiles from [here](https://tool2-mml.sjtu.edu.cn/DeepSecE/TXSS_profiles.tar.gz), and decompress it into data directory.
-
-```shell
-pip install macsyfinder
-conda install -c bioconda hmmer
-cd data
-wget https://tool2-mml.sjtu.edu.cn/DeepSecE/TXSS_profiles.tar.gz
-tar -zxvf TXSS_profiles.tar.gz
-```
-
-The weights of DeepSecE model can be downloaded from https://tool2-mml.sjtu.edu.cn/DeepSecE/checkpoint.pt.
-
 ## Usage
 
 ### Train model
 
-You can train the DeepSecE model by running `train.py` or `scripts/kfold_train.sh` for cross-validation.
+Command used for model fine-tuning:
 
 ```shell
 for i in {0..4}
 do
-   python train.py --model effectortransformer \
-		--data_dir data \
-		--batch_size 32 \
-		--lr 5e-5 \
-		--weight_decay 4e-5 \
-		--dropout_rate 0.4 \
-		--num_layers 1 \
-		--num_heads 4 \
-		--warm_epochs 1 \
-		--patience 5 \
-		--lr_scheduler cosine \
-		--lr_decay_steps 30 \
-		--kfold 5 \
-		--fold_num $i \
-		--log_dir runs/attempt_cv
+python3 DeepSecE_for_ft/train.py --model effectortransformer \
+--data_dir data/DeepsecE_ft/training_set_ft16 \
+--batch_size 32 --lr 5e-5 \
+--weight_decay 4e-5 \
+--dropout_rate 0.4 \
+--num_layers 1 \
+--num_heads 4 \
+--max_epochs 200 \
+--warm_epochs 1 \
+--patience 5 \
+--lr_scheduler cosine \
+--lr_decay_steps 30 \
+--kfold 5 \
+--fold_num $i \
+--log_dir runs/attempt_cv \
+--model_initial model/checkpoint.pt \
+--with_tmbed 1 \
+--mha 1
 done
 ```
 
  Parameters:
 
 - `--model` train a transformer or finetune a ESM-1b model.
+- `--batch_size` 32 --lr 5e-5 \
+- `--weight_decay` 
+- `--dropout_rate` 
+- `--max_epochs` 
+- `--warm_epochs` 
+- `--lr_decay_steps`
+- `--model_initial`
 - `--data_dir` directory that stores training data (default: ./data).
 - `--num_layers` numbers of trainable transformer layer. (default: 1)
 - `--num_heads` numbers of attention heads in secretion-specific transformer (default: 4).
 - `--patience` patience for early stopping used in training.
 - `--lr_schedular` learning rate schedular [step, consine].
 - `--log_dir` directory that stores training outputs (default: logs).
+- `--with_tmbed`
+- `--mha 1`
 
 ### Prediction
 
-You can predict your interested type of secreted proteins only or predict secretion systems and corresponding substrate proteins from scratch.
+Input: fasta file containing protein(s) or proteome of interest.
 
-#### Predict secretion protein
+#### Command used for prediction:
 
 ```shell
-python predict.py --fasta_path examples/Test.fasta \
-		--model_location [path to model weights] \
-		--secretion_systems [I II III IV VI] \
-		--out_dir examples [--save_attn --no_cuda]
+python3 ~/source/DeepSecE_for_ft/predict.py \
+					--fasta_path input_file.fasta \
+					--model_location model/checkpoint.pt \
+					--out_dir output_directory \
+					--save_attn \
+					--save_embedding \
+					--save_umap \
 ```
 
 Parameters:
 
 - `--fasta_path` path to the input protein FASTA file.
-- `--model_location` path to the model weights (download from [here](https://tool2-mml.sjtu.edu.cn/DeepSecE/checkpoint.pt)).
-- `--secretion_systems` type(s) of secretion system to predict (default: I II III IV VI).
+- `--model_location` path to the model weights
 - `--out_dir` directory that stores prediction outputs.
-- `--save_attn` add to save sequence attention of secreted protein.
+- `--save_attn` add to save sequence attention weights for DeepSecE and TMbed (need for attention logo plots).
+- `--save_embedding` add to save sequence embeddings (TMbed+DeepSecE embedding, input for classification layer. Needed for UMAP plots)
+- `--save_umap` add to save UMAP projection of sequence embeddings
 - `--no_cuda` add when CUDA is not available.
 
-#### Predict secretion system and substrate protein
+Output that will be saved in `out_dir` includes:
+- `predictions.csv` file with results of prediction: class predicted for each protein, probabilities assigned to each class, sequence length.
+- `deepSecE_attn.npz` attention weights for DeepSecE, used for sequence attn logos (saved if save_attn = True)
+- `tmbed_mha.npz`  attention weights for TMbed, used for sequence attn logos (saved if save_attn = True)
+- `umap.png` UMAP projection of sequence embeddings (saved if save_umap = True)
+- `effectors.fasta` fasta file containing all input sequences with predicted class in its annotation
 
-**Note:** Make sure the input file is **ordered protein sequences coded in a bacterial genome**.
 
-```shell
-python predict_genome.py --fasta_path examples/NC_002516.2_protein.fasta \
-			--model_location [path to model weights] \
-			--data_dir data \
-			--out_dir examples/NC_002516.2 [--save_attn --no_cuda]
-```
-
-Parameters:
-
-- `--fasta_path` path to the input protein FASTA file.
-- `--model_location` path to the model weights (download from [here](https://tool2-mml.sjtu.edu.cn/DeepSecE/checkpoint.pt)).
-- `--data_dir` directory that stores TXSS profiles (download from [here](https://tool2-mml.sjtu.edu.cn/DeepSecE/TXSS_profiles.tar.gz)).
-- `--out_dir` directory that stores prediction outputs.
-- `--save_attn` add to save sequence attention of secreted protein.
-- `--no_cuda` add when CUDA is not available.
-
-It takes about 5 minutes to predict secreted proteins from a bacterial genome containing 3000 proteion coding sequences on a NVIDIA GeForce RTX 2080 Super GPU.
+It takes about ---- minutes to compute predictionns for a proteome size = with GPU ------- and --- with CPU
 
 ### Plot attention
 
@@ -152,4 +140,4 @@ If you save the attention output of the putative secreted proteins (add `--save_
 
 ## Contact
 
-Please contact Yumeng Zhang at [zhangyumeng1@sjtu.edu.cn](mailto:zhangyumeng1@sjtu.edu.cn) for questions.
+Please contact Maria Colonna (maria.colonna@pasteur.fr) for any questions, comments or issues.
