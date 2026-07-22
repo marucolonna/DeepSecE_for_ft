@@ -1,3 +1,4 @@
 .aider*
 DeepSecE/__pycache__/
 .Rhistory
+pretrained_models/DeepSecE/checkpoint.pt

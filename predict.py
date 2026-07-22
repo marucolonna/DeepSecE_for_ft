@@ -75,7 +75,7 @@ def predict(model, fasta, batch_size, device, outdir, pos_labels, save_attn=Fals
 
             pred = torch.zeros(prob.shape[0], dtype=torch.long)  # Start with all Negative (0)
             pred[prob[:, 1] >= 0.8] = 1  #Inc-protein (1) if prob >= 0.8
-            pred[prob[:, 2] >= 0.8] = 2 #Secreted effector (2) if prob >= 0.8
+            #pred[prob[:, 2] >= 0.8] = 2 #Secreted effector (2) if prob >= 0.8 #removing secreted effector class, only Incs or Negative
            
             probs.append(prob.detach().cpu().numpy())
             preds.append(pred.detach().cpu().numpy())
@@ -153,33 +153,31 @@ def main(args):
     start_time = time.time()
 
     model = EffectorTransformer(1280, 33, hid_dim=256, num_layers=1, heads=4,
-                            dropout_rate=0.4, num_classes=3, return_embedding=args.save_embedding, return_attn=args.save_attn, tmbed_layer=True, mha=True) #incfold #removed tmbed = true and mha=true to do ft5 pred
+                            dropout_rate=0.4, num_classes=3, return_embedding=args.save_embedding, return_attn=args.save_attn) #incfold #removed tmbed = true and mha=true to do ft5 pred
     model.to(device)
     
     print(f'Loading model from {args.model_location}')
     if args.no_cuda:
         model_weights = torch.load(args.model_location, map_location="cpu")
 
-        if model.tmbed_layer:
-            tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
-            tmbed_weights = torch.load(tmbed_weights_file, map_location="cpu")
-            tmbed_weights = tmbed_weights['model']
-            tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
+        tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
+        tmbed_weights = torch.load(tmbed_weights_file, map_location="cpu")
+        tmbed_weights = tmbed_weights['model']
+        tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
 
-            model_weights = {**model_weights, **tmbed_weights}
+        model_weights = {**model_weights, **tmbed_weights}
         
         model.load_state_dict(model_weights)
      
     else:
         model_weights = torch.load(args.model_location)
         
-        if model.tmbed_layer:
-            tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
-            tmbed_weights = torch.load(tmbed_weights_file)
-            tmbed_weights = tmbed_weights['model']
-            tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
+        tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
+        tmbed_weights = torch.load(tmbed_weights_file)
+        tmbed_weights = tmbed_weights['model']
+        tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
 
-            model_weights = {**model_weights, **tmbed_weights}
+        model_weights = {**model_weights, **tmbed_weights}
 
         model.load_state_dict(model_weights)
 

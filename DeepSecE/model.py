@@ -14,18 +14,16 @@ from DeepSecE.attention_pooling import AttentionPooling
 class EffectorTransformer(nn.Module):
 
     def __init__(self, emb_dim, repr_layer, num_layers, heads,
-                 hid_dim=256, dropout_rate=0.4, num_classes=3, attn_dropout=0.05, return_embedding=False, return_attn=False, tmbed_layer=False, mha=False):
+                 hid_dim=256, dropout_rate=0.4, num_classes=3, attn_dropout=0.05, return_embedding=False, return_attn=False):
 
         super().__init__()
         self.pretrained_model, alphabet = esm.pretrained.esm1b_t33_650M_UR50S()
-        self.tmbed_layer = tmbed_layer
         self.protT5_encoder = T5Encoder()
         self.padding_idx = alphabet.padding_idx
         self.dim = hid_dim
         self.repr_layer = repr_layer
         self.num_layers = num_layers
         self.mha_layer = mha
-
         self.conv = nn.Conv1d(emb_dim, hid_dim, 1, 1, bias=False)
         self.layers = nn.ModuleList(
             [
@@ -33,17 +31,11 @@ class EffectorTransformer(nn.Module):
                 for _ in range(self.num_layers)
             ]
         )
-
-        if self.tmbed_layer:
-            clf_input_dim = 448
-            self.clf = nn.Linear(clf_input_dim, num_classes) #incfold - update input dimension for classifier after concatenating tmbed output
-            self.tmbed = Predictor()
-
-            if self.mha_layer:
-                num_heads = 8
-                self.mha = AttentionPooling(embed_dim=192, num_heads=num_heads) #incfold - add multihead attention layer for tmbed output
-        else:
-            self.clf = nn.Linear(hid_dim, num_classes) #this layer I will train for FT
+        clf_input_dim = 448
+        self.clf = nn.Linear(clf_input_dim, num_classes) #incfold - update input dimension for classifier after concatenating tmbed output
+        self.tmbed = Predictor()
+        num_heads = 8
+        self.mha = AttentionPooling(embed_dim=192, num_heads=num_heads) #incfold - add multihead attention layer for tmbed output
 
         for param in self.pretrained_model.parameters():
             param.requires_grad = False        
@@ -51,10 +43,8 @@ class EffectorTransformer(nn.Module):
             param.requires_grad = False #incfold
         for param in self.layers.parameters(): #incfold
             param.requires_grad = False #incfold
-        
-        if self.tmbed_layer:
-            for param in self.tmbed.parameters(): #incfold -freeze tmbed
-                param.requires_grad = False #incfold
+        for param in self.tmbed.parameters(): #incfold -freeze tmbed
+            param.requires_grad = False #incfold
 
         self.return_embedding = return_embedding
         self.return_attn = return_attn
@@ -83,28 +73,22 @@ class EffectorTransformer(nn.Module):
         out = torch.cat([x[i, :len(strs[i]) + 1].mean(0).unsqueeze(0)
                         for i in range(batch)], dim=0) # average pooling along the sequence (bs, 256)
 
-        #add tmbed here - incfold
-        if self.tmbed_layer:
-            with torch.no_grad(): 
-                pt5_out = self.protT5_encoder.embed(strs) #incfold
-                pt5_out = pt5_out.to(torch.float32)
+        #TMbed
+        with torch.no_grad(): 
+            pt5_out = self.protT5_encoder.embed(strs) #incfold
+            pt5_out = pt5_out.to(torch.float32)
 
-            lengths = [len(s) for s in strs] #incfold
-            mask = make_mask(pt5_out, lengths) #incfold
-            tmbed_out = self.tmbed(pt5_out,mask) #incfold - 'b d n'
+        lengths = [len(s) for s in strs] #incfold
+        mask = make_mask(pt5_out, lengths) #incfold
+        tmbed_out = self.tmbed(pt5_out,mask) #incfold - 'b d n'
 
-            tmbed_out = rearrange(tmbed_out, 'b d n -> b n d')
+        tmbed_out = rearrange(tmbed_out, 'b d n -> b n d')
             
-            if self.mha_layer:
-                #mask = torch.zeros(tmbed_out.shape[0], tmbed_out.shape[1], dtype=torch.bool, device=tmbed_out.device) #incfold - create mask for mha pooling (bs, seq_len)
-                mask = torch.arange(tmbed_out.shape[1], device=tmbed_out.device) >= torch.tensor(lengths, device=tmbed_out.device).unsqueeze(1) #incfold - create mask for mha pooling (bs, seq_len)
-                tmbed_out, mha_weights = self.mha(tmbed_out, key_padding_mask=mask) #incfold - apply multihead attention pooling to tmbed output (bs, tmbed_dim)
-            
-            #else:
-            #    tmbed_out = torch.cat([tmbed_out[i, :len(strs[i]) + 1].max(0).unsqueeze(0)
-            #            for i in range(batch)], dim=0) #incfold - max pooling for tmbed output (bs, tmbed_dim)
+        #mask = torch.zeros(tmbed_out.shape[0], tmbed_out.shape[1], dtype=torch.bool, device=tmbed_out.device) #incfold - create mask for mha pooling (bs, seq_len)
+        mask = torch.arange(tmbed_out.shape[1], device=tmbed_out.device) >= torch.tensor(lengths, device=tmbed_out.device).unsqueeze(1) #incfold - create mask for mha pooling (bs, seq_len)
+        tmbed_out, mha_weights = self.mha(tmbed_out, key_padding_mask=mask) #incfold - apply multihead attention pooling to tmbed output (bs, tmbed_dim)
 
-            out = torch.cat([out, tmbed_out], dim=1) #incfold - concatenate along feature dimension (bs, 1280+tmbed_dim)
+        out = torch.cat([out, tmbed_out], dim=1) #incfold - concatenate along feature dimension (bs, 1280+tmbed_dim)
 
         logits = self.clf(out)
         

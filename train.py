@@ -36,17 +36,8 @@ def main(args):
     # Configure model
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if args.model == "effectortransformer":
-        if args.with_tmbed == 1:
-            if args.mha == 1:
-                model = EffectorTransformer(1280, 33, hid_dim=args.hid_dim, num_layers=args.num_layers,
-                                heads=args.num_heads, dropout_rate=args.dropout_rate, num_classes=3, tmbed_layer=True, mha=True)
-            else:
-                model = EffectorTransformer(1280, 33, hid_dim=args.hid_dim, num_layers=args.num_layers,
-                                heads=args.num_heads, dropout_rate=args.dropout_rate, num_classes=3, tmbed_layer=True)
-        else:
-            model = EffectorTransformer(1280, 33, hid_dim=args.hid_dim, num_layers=args.num_layers,
-                                heads=args.num_heads, dropout_rate=args.dropout_rate, num_classes=3) #incfold
-            
+        model = EffectorTransformer(1280, 33, hid_dim=args.hid_dim, num_layers=args.num_layers,
+                                heads=args.num_heads, dropout_rate=args.dropout_rate, num_classes=3)
     elif args.model == "esm1bmodel":
         model = ESM1bModel(1280, 33, unfreeze_last=True, hid_dim=args.hid_dim, dropout_rate=args.dropout_rate, num_classes=3)
     else:
@@ -57,26 +48,18 @@ def main(args):
         model_weights = torch.load(args.model_initial, map_location="cpu")
     else:
         model_weights = torch.load(args.model_initial)
-
-    if args.with_tmbed == 1:
         
-        tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
-        tmbed_weights = torch.load(tmbed_weights_file) #incfold
-        tmbed_weights = tmbed_weights['model'] #incfold - tmbed weights
-        tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
+    tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
+    tmbed_weights = torch.load(tmbed_weights_file) #incfold
+    tmbed_weights = tmbed_weights['model'] #incfold - tmbed weights
+    tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
 
-        model_weights['clf.weight'] = nn.init.kaiming_uniform_(torch.zeros(3,448)) #incfold - classifier initialization - dim=488 after concatenating tmbed output
-        fan_in, _ = nn.init._calculate_fan_in_and_fan_out(model_weights['clf.weight']) #incfold 
-        bound = 1 / fan_in ** 0.5 if fan_in > 0 else 0 #incfold 
-        model_weights['clf.bias'] = nn.init.uniform_(torch.zeros(3), -bound, bound) #incfold 
+    model_weights['clf.weight'] = nn.init.kaiming_uniform_(torch.zeros(3,448)) #incfold - classifier initialization - dim=488 after concatenating tmbed output
+    fan_in, _ = nn.init._calculate_fan_in_and_fan_out(model_weights['clf.weight']) #incfold 
+    bound = 1 / fan_in ** 0.5 if fan_in > 0 else 0 #incfold 
+    model_weights['clf.bias'] = nn.init.uniform_(torch.zeros(3), -bound, bound) #incfold 
 
-        model_weights = {**model_weights, **tmbed_weights} #incfold - merging tmbed weights with DeepSecE weights
-
-    else:
-        model_weights['clf.weight'] = nn.init.kaiming_uniform_(torch.zeros(3,256)) #incfold - classifier initialization - dim=256 without tmbed
-        fan_in, _ = nn.init._calculate_fan_in_and_fan_out(model_weights['clf.weight']) #incfold 
-        bound = 1 / fan_in ** 0.5 if fan_in > 0 else 0 #incfold 
-        model_weights['clf.bias'] = nn.init.uniform_(torch.zeros(3), -bound, bound) #incfold 
+    model_weights = {**model_weights, **tmbed_weights} #incfold - merging tmbed weights with DeepSecE weights
 
     model.load_state_dict(model_weights, strict = False) #incfold - no error for missing tmbed input weights
     model.to(device)
@@ -226,10 +209,6 @@ if __name__ == '__main__':
                         help="ratio of learning rate decay. (default: 0.5)")
     parser.add_argument('--lr_decay_min_lr', default=5e-6, type=float,
                         help="minimum value of learning rate. (default: 5e-6)")
-    parser.add_argument('--with_tmbed', default=0, type=float,
-                        help="enter 1 to add frozen tmbed layer for training - (default: 0)")                       
-    parser.add_argument('--mha', default=0, type=float,
-                        help="enter 1 to do mha pooling - (default: 0)")
     
     # Training Info
     parser.add_argument('--max_epochs', default=30, type=int,
