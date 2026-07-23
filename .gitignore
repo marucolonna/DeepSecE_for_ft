@@ -1,4 +1,7 @@
 .aider*
 DeepSecE/__pycache__/
 .Rhistory
-pretrained_models/
+data/validated_incs_all.fasta
+PredInc/weights
+PredInc/TMbed_ft/models
+apptainer
