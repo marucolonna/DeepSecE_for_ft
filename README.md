@@ -4,13 +4,9 @@ Fine-tuned model of combined approach detection of for inclusion membrane protei
 - DeepSecE: Secretion-specific Transformer model used in secretion protein prediction in Gram-negative bacteria (https://doi.org/10.34133/research.0258)
 - TMbed: CCN-based model for per-residue prediction of transmembrane segments and topology (https://doi.org/10.1186/s12859-022-04873-x)
 
-The combined model has been fine-tuned on a curated data base of chlamydia T3 effectors, resulting in an accurate classifier of chlamydial proteins in 3 classes:
+The combined model has been fine-tuned on a curated data base of chlamydia T3 effectors, resulting in an accurate detector of chlamydial inclusion membrane proteins.
 
-- Inclusion membrane proteins (Incs) - T3 effectors inserted in the inclusion membrane
-- Host-translocated effectors - T3 effectors located in the host cell
-- Negatives - Non-T3 effectors
-
-## Performance Comparison
+You can find precomputed predictions for some chlamydial proteomes in the 'precomputed_predictions' directory. Full output including umaps and attention logos are supplied for *Chlamydia trachomatis* CTDUW-3CX (AE001273.1) and *Chlamydia pneumoniae* CWL029 (AE001363.1).
 
 ## Set up
 
@@ -39,7 +35,7 @@ The combined model has been fine-tuned on a curated data base of chlamydia T3 ef
 To install clone this repository and run directly:
 
 ```shell
-git clone ""
+git clone "https://github.com/marucolonna/PredInc.git"
 
 ```
 
@@ -105,13 +101,12 @@ Input: fasta file containing protein(s) or proteome of interest.
 #### Command used for prediction:
 
 ```shell
-python3 ~/source/DeepSecE_for_ft/predict.py \
+python3 ~/source/PredInc/PredInc/predict.py \
 					--fasta_path input_file.fasta \
-					--model_location model/checkpoint.pt \
+					--model_location weights/checkpoint.pt \
 					--out_dir output_directory \
 					--save_attn \
-					--save_embedding \
-					--save_umap \
+					--save_embedding
 ```
 
 Parameters:
@@ -119,6 +114,7 @@ Parameters:
 - `--fasta_path` path to the input protein FASTA file.
 - `--model_location` path to the model weights
 - `--out_dir` directory that stores prediction outputs.
+
 - `--save_attn` add to save sequence attention weights for DeepSecE and TMbed (need for attention logo plots).
 - `--save_embedding` add to save sequence embeddings (TMbed+DeepSecE embedding, input for classification layer. Needed for UMAP plots)
 - `--save_umap` add to save UMAP projection of sequence embeddings
@@ -126,18 +122,16 @@ Parameters:
 
 Output that will be saved in `out_dir` includes:
 - `predictions.csv` file with results of prediction: class predicted for each protein, probabilities assigned to each class, sequence length.
+- `effectors.fasta` fasta file containing all input sequences with predicted class in annotation
+
 - `deepSecE_attn.npz` attention weights for DeepSecE, used for sequence attn logos (saved if save_attn = True)
 - `tmbed_mha.npz`  attention weights for TMbed, used for sequence attn logos (saved if save_attn = True)
-- `umap.png` UMAP projection of sequence embeddings (saved if save_umap = True)
-- `effectors.fasta` fasta file containing all input sequences with predicted class in its annotation
+- `./attn_profiles`  attn logo profile for TMbed and DeepSecE attn weights (saved if save_attn = True)
+- `seq_embeddings.pt` sequence embeddings (saved if save_embedding = True)
+- `seq_labels.csv` sequence labels, used for umap (saved if save_embedding = True)
+- `umap.png` UMAP projection of sequence embeddings (saved if save_embedding = True)
 
-
-It takes about ---- minutes to compute predictionns for a proteome size = with GPU ------- and --- with CPU
-
-### Plot attention
-
-If you save the attention output of the putative secreted proteins (add `--save_attn`), you can run `python scripts/plot_attention.py [directory of prediction output]` to plot the saliency map from attention, and infer potentially import regions related to protein secretion.
+It takes about ---- minutes to compute predictions for a proteome size = with GPU ------- and --- with CPU
 
 ## Contact
-
 Please contact Maria Colonna (maria.colonna@pasteur.fr) for any questions, comments or issues.
