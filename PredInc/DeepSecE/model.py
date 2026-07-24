@@ -5,9 +5,9 @@ from einops import rearrange
 import esm
 from DeepSecE.module import TransformerLayer, MLPLayer
 
-from tmbed.model import Predictor
-from tmbed.utils import make_mask
-from tmbed.embed import T5Encoder
+from TMbed_ft.tmbed.model import Predictor
+from TMbed_ft.tmbed.utils import make_mask
+from TMbed_ft.tmbed.embed import T5Encoder
 
 from DeepSecE.attention_pooling import AttentionPooling
 

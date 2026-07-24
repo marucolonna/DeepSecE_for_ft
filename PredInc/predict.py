@@ -156,7 +156,7 @@ def main(args):
     start_time = time.time()
 
     model = EffectorTransformer(1280, 33, hid_dim=256, num_layers=1, heads=4,
-                            dropout_rate=0.4, num_classes=3, return_embedding=args.save_embedding, return_attn=args.save_attn) #incfold #removed tmbed = true and mha=true to do ft5 pred
+                            dropout_rate=0.4, num_classes=3, return_embedding=args.save_embedding, return_attn=args.save_attn)
     model.to(device)
     
     print(f'Loading model from {args.model_location}')
