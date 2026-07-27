@@ -193,14 +193,14 @@ def main(args):
     print(f'It took {secs:.1f}s to finish the prediction')
 
     if args.save_attn:
-        plot_mha(os.path.join(args.outdir, 'TMbed_attn.npz'), args.fasta_path) #saves attn profiles for TMbed
-        plot_attention(os.path.join(args.outdir, 'DeepSecE_attn.npz'), args.fasta_path) #saves attn profiles for DeepSecE
+        plot_mha(os.path.join(args.out_dir, 'TMbed_attn.npz'), args.fasta_path) #saves attn profiles for TMbed
+        plot_attention(os.path.join(args.out_dir, 'DeepSecE_attn.npz'), args.fasta_path) #saves attn profiles for DeepSecE
 
     if args.save_embedding:
-        seq_embeddings = os.path.join(args.outdir, "seq_embeddings.pt")
-        seq_names = os.path.join(args.outdir, "protein_names_embeddings.csv")
-        seq_predictions = os.path.join(args.outdir, "predictions.csv")
-        output = os.path.join(args.outdir, "umap.png")
+        seq_embeddings = os.path.join(args.out_dir, "seq_embeddings.pt")
+        seq_names = os.path.join(args.out_dir, "protein_names_embeddings.csv")
+        seq_predictions = os.path.join(args.out_dir, "predictions.csv")
+        output = os.path.join(args.out_dir, "umap.png")
         umap(seq_embeddings, seq_names, seq_predictions, output) #plots and saves figure
 
 if __name__ == '__main__':
