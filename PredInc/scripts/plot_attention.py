@@ -1,4 +1,13 @@
 #!/usr/bin/env python3
+#
+# This file is a derivative work based on [Project DeepSecE],
+# originally licensed under the [MIT License].
+# Original source: [https://github.com/zhangyumeng1sjtu/DeepSecE/tree/main]
+# Copyright (c) 2022 Yumeng Zhang
+
+# Modifications made by Maria Colonna, Institut Pasteur, 2026,
+# are licensed under the [XXX License].
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -20,7 +29,7 @@ def plot_attention(attn_file, fasta_file):
 
     fasta_dict = SeqIO.to_dict(SeqIO.parse(fasta_file, 'fasta'))
 
-    os.makedirs(os.path.join(dirname, 'DeepSecE_attn'), exist_ok=True)
+    os.makedirs(os.path.join(dirname, 'DeepSecE_attn_logo'), exist_ok=True)
 
     for key, value in data.items():
         seq = list(fasta_dict[key].seq[:1020])
@@ -58,7 +67,7 @@ def plot_attention(attn_file, fasta_file):
             logo.ax.axhline(offset, color='gray', linewidth=1, linestyle='--')
 
         plt.tight_layout()
-        plt.savefig(os.path.join('DeepSecE_attn_logo', f'{key}-attn.png'), dpi=300)
+        plt.savefig(os.path.join(dirname,'DeepSecE_attn_logo', f'{key}-attn.png'), dpi=300)
 
     end_time = time.time()
     secs = end_time - start_time

@@ -1,3 +1,18 @@
+# This file is a derivative work based on [Project TMbed],
+# originally licensed under the [Apache-2.0 License].
+# Original source: [https://github.com/BernhoferM/TMbed]
+# Copyright (c) 2022 Michael Bernhofer
+
+# Modifications made by Maria Colonna, Institut Pasteur, 2026,
+# are licensed under the [XXX License].
+#
+# This file is a derivative work based on [Project TMbed],
+# originally licensed under the [Apache-2.0 License].
+# Original source: [https://github.com/BernhoferM/TMbed]
+# Copyright (c) 2022 Michael Bernhofer
+
+# Modifications made by Maria Colonna, Institut Pasteur, 2026,
+# are licensed under the [XXX License].
 # Copyright 2022 Rostlab
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

@@ -1,3 +1,12 @@
+#
+# This file is a derivative work based on [Project DeepSecE],
+# originally licensed under the [MIT License].
+# Original source: [https://github.com/zhangyumeng1sjtu/DeepSecE/tree/main]
+# Copyright (c) 2022 Yumeng Zhang
+
+# Modifications made by Maria Colonna, Institut Pasteur, 2026,
+# are licensed under the [XXX License].
+
 import numpy as np
 from torch.utils.data import Dataset
 from sklearn.model_selection import StratifiedKFold, train_test_split
