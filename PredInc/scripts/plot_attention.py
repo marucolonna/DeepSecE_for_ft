@@ -16,7 +16,7 @@ def plot_attention(attn_file, fasta_file):
     start_time = time.time()
 
     data = np.load(attn_file)
-    dirname = os.path.dirname(data)
+    dirname = os.path.dirname(attn_file)
 
     fasta_dict = SeqIO.to_dict(SeqIO.parse(fasta_file, 'fasta'))
 
