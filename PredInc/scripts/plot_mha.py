@@ -6,10 +6,9 @@ from Bio import SeqIO
 import pandas as pd
 import os
 
-
-
 def plot_mha(mha_file, fasta_file):
     data = np.load(mha_file) #mha.npz
+    dirname = os.path.dirname(mha_file)
 
     for key, value in data.items():
         mha_matrix = value[:-1] #remove eos position (is there because of pT5 tokenization)
@@ -46,7 +45,7 @@ def plot_mha(mha_file, fasta_file):
             # Tight layout for saving
             plt.tight_layout()
             #logo.ax.figure.savefig(os.path.join(out_dir, mha_file.split("/")[-1].replace(".npy", ".png")), dpi=300)
-            logo.ax.figure.savefig(f"TMbed_mha_logo/{prot_name}.png", dpi=300)
+            logo.ax.figure.savefig(os.path.join(dirname,f"TMbed_mha_logo/{prot_name}.png"), dpi=300)
             #print("mha matrix shape:", mha_matrix.shape)
             #print("Min / Max in mha matrix:", mha_matrix.min(), "/", mha_matrix.max())
             print(f"Saved attention logo for {prot_name}")
