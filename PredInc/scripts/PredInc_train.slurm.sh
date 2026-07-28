@@ -19,5 +19,5 @@ export HF_HOME="$CACHE_DIR"  # Hugging Face cache
 
 for i in {0..1}
 do
-apptainer exec -B /pasteur/helix/scratch/mcolonna --nv PredInc/apptainer/PredInc.sif python3 /opt/PredInc/PredInc/train.py --model effectortransformer --data_dir data/train_set/training_data_ft18/labeled_train_set.fasta --batch_size 32 --lr 5e-5 --weight_decay 4e-5 --dropout_rate 0.4 --num_layers 1 --num_heads 4 --max_epochs 200 --warm_epochs 1 --patience 5 --lr_scheduler cosine --lr_decay_steps 30 --kfold 5 --fold_num $i --log_dir runs/attempt_cv --model_initial PredInc/weights/DeepSecE/checkpoint.pt
+apptainer exec -B /pasteur/helix/scratch/mcolonna --nv PredInc/apptainer/PredInc.sif python3 /opt/PredInc/PredInc/train.py --model effectortransformer --data_dir data/train_set/training_data_ft18 --batch_size 32 --lr 5e-5 --weight_decay 4e-5 --dropout_rate 0.4 --num_layers 1 --num_heads 4 --max_epochs 200 --warm_epochs 1 --patience 5 --lr_scheduler cosine --lr_decay_steps 30 --kfold 5 --fold_num $i --log_dir runs/attempt_cv --model_initial PredInc/weights/DeepSecE/checkpoint.pt
 done
