@@ -58,7 +58,7 @@ def main(args):
     else:
         model_weights = torch.load(args.model_initial)
         
-    tmbed_weights_file = Path('outputs/tmbed_weights/cnn/cv_0.pt') #incfold - tmbed weights
+    tmbed_weights_file = Path('PredInc/weights/tmbed/cnn/cv_0.pt') #incfold - tmbed weights
     tmbed_weights = torch.load(tmbed_weights_file) #incfold
     tmbed_weights = tmbed_weights['model'] #incfold - tmbed weights
     tmbed_weights = {'tmbed.' + k: v for k, v in tmbed_weights.items()} #incfold
