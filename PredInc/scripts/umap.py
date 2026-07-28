@@ -6,9 +6,8 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from argparse import ArgumentParser
 
-def umap(seq_embeddings, seq_names, seq_predictions, output):
+def plot_umap(seq_embeddings, seq_names, seq_predictions, output):
 
     embeddings = torch.load(seq_embeddings, map_location="cpu")
 

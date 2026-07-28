@@ -25,7 +25,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from DeepSecE.model import EffectorTransformer
-from scripts.umap import umap
+from scripts.umap import plot_umap
 from scripts.plot_mha import plot_mha
 from scripts.plot_attention import plot_attention
 
@@ -210,7 +210,7 @@ def main(args):
         seq_names = os.path.join(args.out_dir, "protein_names_embeddings.csv")
         seq_predictions = os.path.join(args.out_dir, "predictions.csv")
         output = os.path.join(args.out_dir, "umap.png")
-        umap(seq_embeddings, seq_names, seq_predictions, output) #plots and saves figure
+        plot_umap(seq_embeddings, seq_names, seq_predictions, output) #plots and saves figure
 
 if __name__ == '__main__':
 
