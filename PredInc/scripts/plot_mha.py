@@ -9,6 +9,7 @@ import os
 def plot_mha(mha_file, fasta_file):
     data = np.load(mha_file) #mha.npz
     dirname = os.path.dirname(mha_file)
+    os.makedirs(os.path.join(dirname, 'TMbed_mha_logo'), exist_ok=True)
 
     for key, value in data.items():
         mha_matrix = value[:-1] #remove eos position (is there because of pT5 tokenization)
