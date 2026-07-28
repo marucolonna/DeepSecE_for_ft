@@ -18,22 +18,24 @@ export MPLCONFIGDIR="$CONFIG_DIR"
 export HF_HOME="$CACHE_DIR"  # Hugging Face cache    
 
 input=$1 #fasta file or directory containing fastas
+name=$(basename "${input}" .fasta)
 
 if [ -f "$input" ]; then
 	apptainer exec --nv PredInc/apptainer/PredInc.sif python3 /opt/PredInc/PredInc/predict.py \
 					--fasta_path ${input} \
 					--model_location PredInc/weights/PredInc/predinc100_checkpoint.pt \
-					--out_dir $(dirname $input)/$(basename ${input})_results \
+					--out_dir outputs/"${name}"_results \
 					--save_attn \
 					--save_embedding
 elif [ -d "$input" ]; then
 	mkdir -p "$input"_results
-	for FILE in "$1"/*; do
+	for FILE in "$input"/*; do
+		name=$(basename "${FILE}" .fasta)
 		echo "Processing $FILE"
 		apptainer exec --nv PredInc/apptainer/PredInc.sif python3 /opt/PredInc/PredInc/predict.py \
 					--fasta_path ${FILE} \
 					--model_location PredInc/weights/PredInc/predinc100_checkpoint.pt \
-					--out_dir "$input"_results \
+					--out_dir outputs/"${name}"_results \
 					--save_attn \
 					--save_embedding
 	done

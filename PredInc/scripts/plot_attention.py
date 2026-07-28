@@ -11,12 +11,11 @@ from Bio import SeqIO
 import logomaker as lm
 
 def plot_attention(attn_file, fasta_file):
-    dirname = sys.argv[1]
     offset = .1
 
     start_time = time.time()
 
-    data = np.load(os.path.join(dirname, attn_file))
+    data = np.load(attn_file)
 
     fasta_dict = SeqIO.to_dict(SeqIO.parse(fasta_file, 'fasta'))
 
