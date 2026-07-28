@@ -16,10 +16,11 @@ def plot_attention(attn_file, fasta_file):
     start_time = time.time()
 
     data = np.load(attn_file)
+    dirname = os.path.dirname(data)
 
     fasta_dict = SeqIO.to_dict(SeqIO.parse(fasta_file, 'fasta'))
 
-    os.makedirs(os.path.join(dirname, 'attn'), exist_ok=True)
+    os.makedirs(os.path.join(dirname, 'DeepSecE_attn'), exist_ok=True)
 
     for key, value in data.items():
         seq = list(fasta_dict[key].seq[:1020])
