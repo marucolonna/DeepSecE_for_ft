@@ -15,7 +15,9 @@ export CACHE_DIR="${MY_SCRATCH_DIR}/.cache"
 export CONFIG_DIR="${MY_SCRATCH_DIR}/.config"
 export TORCH_HOME="$CACHE_DIR"
 export MPLCONFIGDIR="$CONFIG_DIR"
-export HF_HOME="$CACHE_DIR"  # Hugging Face cache    
+export HF_HOME="$CACHE_DIR"  # Hugging Face cache  
+export NUMBA_CACHE_DIR="tmp/numba_cache"
+mkdir -p tmp/numba_cache
 
 input=$1 #fasta file or directory containing fastas
 name=$(basename "${input}" .fasta)

@@ -207,7 +207,7 @@ def main(args):
 
     if args.save_embedding:
         seq_embeddings = os.path.join(args.out_dir, "seq_embeddings.pt")
-        seq_names = os.path.join(args.out_dir, "protein_names_embeddings.csv")
+        seq_names = os.path.join(args.out_dir, "seq_labels.csv")
         seq_predictions = os.path.join(args.out_dir, "predictions.csv")
         output = os.path.join(args.out_dir, "umap.png")
         plot_umap(seq_embeddings, seq_names, seq_predictions, output) #plots and saves figure
