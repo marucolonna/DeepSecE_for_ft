@@ -5,3 +5,4 @@ data/validated_incs_all.fasta
 PredInc/weights
 PredInc/TMbed_ft/models
 apptainer
+PredInc/scripts/__pycache__/

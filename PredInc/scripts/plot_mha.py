@@ -16,13 +16,13 @@ def plot_mha(mha_file, fasta_file):
         prot_sequences = SeqIO.to_dict(SeqIO.parse(fasta_file, "fasta"))
 
         seq= None
-        prot_name = mha_file.split("/")[-1].split(".npy")[0]
+        prot_name = key.split("/")[-1].split(".npy")[0]
 
         for key, value in prot_sequences.items():
-            if  prot_name in key:
+            if prot_name in key:
                 seq = str(value.seq)
-                print(f"Name: {key}, Sequence Length: {len(seq)}")
-                print(f"Sequence Length: {len(seq)}, MHA Matrix Length: {len(mha_matrix)}")
+                #print(f"Name: {key}, Sequence Length: {len(seq)}")
+                #print(f"Sequence Length: {len(seq)}, MHA Matrix Length: {len(mha_matrix)}")
             else:
                 continue
 
@@ -47,9 +47,10 @@ def plot_mha(mha_file, fasta_file):
             plt.tight_layout()
             #logo.ax.figure.savefig(os.path.join(out_dir, mha_file.split("/")[-1].replace(".npy", ".png")), dpi=300)
             logo.ax.figure.savefig(os.path.join(dirname,f"TMbed_mha_logo/{prot_name}.png"), dpi=300)
-            #print("mha matrix shape:", mha_matrix.shape)
-            #print("Min / Max in mha matrix:", mha_matrix.min(), "/", mha_matrix.max())
-            print(f"Saved attention logo for {prot_name}")
+            
+            #print(f"Saved attention logo for {prot_name}")
+    
+    print(f"Saved TMbed multi-head-attention logos")
 
 #plot_attn(mha_file, fasta_file)
 
