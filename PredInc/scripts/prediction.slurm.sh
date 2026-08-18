@@ -25,7 +25,7 @@ name=$(basename "${input}" .fasta)
 if [ -f "$input" ]; then
 	apptainer exec --nv PredInc/apptainer/PredInc.sif python3 /opt/PredInc/PredInc/predict.py \
 					--fasta_path ${input} \
-					--model_location PredInc/weights/PredInc/predinc100_checkpoint.pt \
+					--model_location PredInc/weights/PredInc/predinc18_200_checkpoint.pt \
 					--out_dir outputs/"${name}"_results \
 					--save_attn \
 					--save_embedding
@@ -38,7 +38,6 @@ elif [ -d "$input" ]; then
 					--fasta_path ${FILE} \
 					--model_location PredInc/weights/PredInc/predinc100_checkpoint.pt \
 					--out_dir outputs/"${name}"_results \
-					--save_attn \
 					--save_embedding
 	done
 else

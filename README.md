@@ -6,7 +6,7 @@ Fine-tuned model of combined approach detection of for inclusion membrane protei
 
 The combined model has been fine-tuned on a curated data base of chlamydia T3 effectors, resulting in an accurate detector of chlamydial inclusion membrane proteins.
 
-You can find precomputed predictions for some chlamydial proteomes in the 'precomputed_predictions' directory. Full output including umaps and attention logos are supplied for *Chlamydia trachomatis* CTDUW-3CX (AE001273.1) and *Chlamydia pneumoniae* CWL029 (AE001363.1).
+You can find precomputed predictions for 16 chlamydial proteomes in the 'precomputed_predictions' directory. Full output including attention logos are supplied for *Chlamydia trachomatis* CTDUW-3CX (AE001273.1) and *Chlamydia pneumoniae* CWL029 (AE001363.1) proteomes.
 
 ## Set up
 
@@ -39,7 +39,7 @@ git clone "https://github.com/marucolonna/PredInc.git"
 
 ```
 
-If you want to plot the sequence attention, you should install package `logomarker`
+If you want to plot the sequence attention, you should install package `logomaker`
 
 ```shell
 pip install logomaker
@@ -47,7 +47,46 @@ pip install logomaker
 
 ## Usage
 
-### Train model
+### Prediction
+
+Input: fasta file containing protein(s) or proteome of interest.
+
+#### Command used for prediction:
+
+```shell
+python3 ~/source/PredInc/PredInc/predict.py \
+					--fasta_path input_file.fasta \
+					--model_location weights/checkpoint.pt \
+					--out_dir output_directory \
+					--save_attn \
+					--save_embedding
+```
+
+Required parameters:
+- `--fasta_path` path to the input protein FASTA file.
+- `--model_location` path to the model weights
+- `--out_dir` directory that stores prediction outputs.
+
+Optional parameters:
+- `--save_attn` add to save sequence attention weights for DeepSecE and TMbed (need for attention logo plots).
+- `--save_embedding` add to save sequence embeddings (TMbed+DeepSecE embedding, input for classification layer. Needed for UMAP plots)
+- `--save_umap` add to save UMAP projection of sequence embeddings
+- `--no_cuda` add when CUDA is not available.
+
+Output that will be saved in `out_dir` includes:
+- `predictions.csv` file with results of prediction: class predicted for each protein, probabilities assigned to each class, sequence length.
+- `effectors.fasta` fasta file containing all input sequences with predicted class in annotation
+
+- `deepSecE_attn.npz` attention weights for DeepSecE, used for sequence attn logos (saved if save_attn = True)
+- `tmbed_mha.npz`  attention weights for TMbed, used for sequence attn logos (saved if save_attn = True)
+- `./attn_profiles`  attn logo profile for TMbed and DeepSecE attn weights (saved if save_attn = True)
+- `seq_embeddings.pt` sequence embeddings (saved if save_embedding = True)
+- `seq_labels.csv` sequence labels, used for umap (saved if save_embedding = True)
+- `umap.png` UMAP projection of sequence embeddings (saved if save_embedding = True)
+
+It takes around ---- minutes to compute predictions for a protein sequence = ---- on GPU ------- and --- with CPU
+
+### Train model (fine tuning)
 
 Command used for model fine-tuning:
 
@@ -55,7 +94,7 @@ Command used for model fine-tuning:
 for i in {0..4}
 do
 python3 DeepSecE_for_ft/train.py --model effectortransformer \
---data_dir data/DeepsecE_ft/training_set_ft16 \
+--data_dir data/your_data.fasta \
 --batch_size 32 --lr 5e-5 \
 --weight_decay 4e-5 \
 --dropout_rate 0.4 \
@@ -69,9 +108,7 @@ python3 DeepSecE_for_ft/train.py --model effectortransformer \
 --kfold 5 \
 --fold_num $i \
 --log_dir runs/attempt_cv \
---model_initial model/checkpoint.pt \
---with_tmbed 1 \
---mha 1
+--model_initial PredInc/weights/DeepSecE/checkpoint.pt \
 done
 ```
 
@@ -91,47 +128,6 @@ done
 - `--patience` patience for early stopping used in training.
 - `--lr_schedular` learning rate schedular [step, consine].
 - `--log_dir` directory that stores training outputs (default: logs).
-- `--with_tmbed`
-- `--mha 1`
-
-### Prediction
-
-Input: fasta file containing protein(s) or proteome of interest.
-
-#### Command used for prediction:
-
-```shell
-python3 ~/source/PredInc/PredInc/predict.py \
-					--fasta_path input_file.fasta \
-					--model_location weights/checkpoint.pt \
-					--out_dir output_directory \
-					--save_attn \
-					--save_embedding
-```
-
-Parameters:
-
-- `--fasta_path` path to the input protein FASTA file.
-- `--model_location` path to the model weights
-- `--out_dir` directory that stores prediction outputs.
-
-- `--save_attn` add to save sequence attention weights for DeepSecE and TMbed (need for attention logo plots).
-- `--save_embedding` add to save sequence embeddings (TMbed+DeepSecE embedding, input for classification layer. Needed for UMAP plots)
-- `--save_umap` add to save UMAP projection of sequence embeddings
-- `--no_cuda` add when CUDA is not available.
-
-Output that will be saved in `out_dir` includes:
-- `predictions.csv` file with results of prediction: class predicted for each protein, probabilities assigned to each class, sequence length.
-- `effectors.fasta` fasta file containing all input sequences with predicted class in annotation
-
-- `deepSecE_attn.npz` attention weights for DeepSecE, used for sequence attn logos (saved if save_attn = True)
-- `tmbed_mha.npz`  attention weights for TMbed, used for sequence attn logos (saved if save_attn = True)
-- `./attn_profiles`  attn logo profile for TMbed and DeepSecE attn weights (saved if save_attn = True)
-- `seq_embeddings.pt` sequence embeddings (saved if save_embedding = True)
-- `seq_labels.csv` sequence labels, used for umap (saved if save_embedding = True)
-- `umap.png` UMAP projection of sequence embeddings (saved if save_embedding = True)
-
-It takes about ---- minutes to compute predictions for a proteome size = with GPU ------- and --- with CPU
 
 ## Contact
 Please contact Maria Colonna (maria.colonna@pasteur.fr) for any questions, comments or issues.

@@ -17,7 +17,7 @@ sshrun maestro.pasteur.fr "sbatch PredInc/scripts/prediction.slurm.sh $1" \
  										PredInc/predict.py \
  										PredInc/apptainer/PredInc.sif \
 										PredInc/weights/DeepSecE/checkpoint.pt \
- 										PredInc/weights/PredInc/predinc100_checkpoint.pt \
+ 										PredInc/weights/PredInc/predinc18_200_checkpoint.pt \
  										PredInc/weights/tmbed/cnn/cv_0.pt \
  										$1 \
  								--remote-dir /pasteur/helix/scratch/mcolonna/PredInc-predict
