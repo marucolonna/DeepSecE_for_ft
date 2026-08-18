@@ -1,4 +1,4 @@
-# DeepSecE
+# PredInc
 
 Fine-tuned model of combined approach detection of for inclusion membrane proteins and host-translocated type 3 effectors of Chlamydiae. We combine 2 pretrained models:
 - DeepSecE: Secretion-specific Transformer model used in secretion protein prediction in Gram-negative bacteria (https://doi.org/10.34133/research.0258)
@@ -54,9 +54,10 @@ Input: fasta file containing protein(s) or proteome of interest.
 #### Command used for prediction:
 
 ```shell
-python3 ~/source/PredInc/PredInc/predict.py \
+
+python3 PredInc/predict.py \
 					--fasta_path input_file.fasta \
-					--model_location weights/checkpoint.pt \
+					--model_location PredInc/weights/PredInc/predinc18_200_checkpoint.pt \
 					--out_dir output_directory \
 					--save_attn \
 					--save_embedding
@@ -68,9 +69,8 @@ Required parameters:
 - `--out_dir` directory that stores prediction outputs.
 
 Optional parameters:
-- `--save_attn` add to save sequence attention weights for DeepSecE and TMbed (need for attention logo plots).
-- `--save_embedding` add to save sequence embeddings (TMbed+DeepSecE embedding, input for classification layer. Needed for UMAP plots)
-- `--save_umap` add to save UMAP projection of sequence embeddings
+- `--save_attn` add to save DeepSecE and TMbed sequence attention weights and logo plots.
+- `--save_embedding` add to save sequence embeddings (TMbed+DeepSecE embedding, input for classification layer) and UMAP plot of sequence embeddings.
 - `--no_cuda` add when CUDA is not available.
 
 Output that will be saved in `out_dir` includes:
@@ -79,12 +79,11 @@ Output that will be saved in `out_dir` includes:
 
 - `deepSecE_attn.npz` attention weights for DeepSecE, used for sequence attn logos (saved if save_attn = True)
 - `tmbed_mha.npz`  attention weights for TMbed, used for sequence attn logos (saved if save_attn = True)
-- `./attn_profiles`  attn logo profile for TMbed and DeepSecE attn weights (saved if save_attn = True)
+- `./DeepSecE_attn_logo`  DeepSecE attn logo plots (saved if save_attn = True)
+- `./TMbed_mha_logo`  TMbed attn logo plots (saved if save_attn = True)
 - `seq_embeddings.pt` sequence embeddings (saved if save_embedding = True)
 - `seq_labels.csv` sequence labels, used for umap (saved if save_embedding = True)
 - `umap.png` UMAP projection of sequence embeddings (saved if save_embedding = True)
-
-It takes around ---- minutes to compute predictions for a protein sequence = ---- on GPU ------- and --- with CPU
 
 ### Train model (fine tuning)
 
@@ -93,8 +92,8 @@ Command used for model fine-tuning:
 ```shell
 for i in {0..4}
 do
-python3 DeepSecE_for_ft/train.py --model effectortransformer \
---data_dir data/your_data.fasta \
+python3 PredInc/train.py --model effectortransformer \
+--data_dir data/your_training_data.fasta \
 --batch_size 32 --lr 5e-5 \
 --weight_decay 4e-5 \
 --dropout_rate 0.4 \

@@ -36,7 +36,7 @@ elif [ -d "$input" ]; then
 		echo "Processing $FILE"
 		apptainer exec --nv PredInc/apptainer/PredInc.sif python3 /opt/PredInc/PredInc/predict.py \
 					--fasta_path ${FILE} \
-					--model_location PredInc/weights/PredInc/predinc100_checkpoint.pt \
+					--model_location PredInc/weights/PredInc/predinc18_200_checkpoint.pt \
 					--out_dir outputs/"${name}"_results \
 					--save_embedding
 	done
