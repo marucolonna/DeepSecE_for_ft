@@ -51,6 +51,8 @@ pip install logomaker
 
 Input: fasta file containing protein(s) or proteome of interest.
 
+Download model weights from: 
+
 #### Command used for prediction:
 
 ```shell

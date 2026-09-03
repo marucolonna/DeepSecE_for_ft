@@ -8,7 +8,7 @@ SPDX-FileCopyrightText = [
     "2022 Yumeng Zhang",
     "2026 Institut Pasteur, Maria Colonna"
 ]
-SPDX-License-Identifier = "MIT AND ZZZ"
+SPDX-License-Identifier = "MIT AND MIT"
 
 [[annotations]]
 path = "PredInc/TMbed_ft"
@@ -17,4 +17,4 @@ SPDX-FileCopyrightText = [
     "2022 Michael Bernhofer",
     "2026 Institut Pasteur, Maria Colonna"
 ]
-SPDX-License-Identifier = "Apache-2.0 AND ZZZ"
+SPDX-License-Identifier = "Apache-2.0 AND MIT"
